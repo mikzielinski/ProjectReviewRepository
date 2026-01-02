@@ -251,109 +251,43 @@
   flex-shrink: 0;
 }
 
-/* DOCX Preview Container - Page-based structure */
+/* DOCX Preview Container - Continuous surface, no A4 pages */
 #docx-preview-container {
   background: #f5f5f5;
   overflow: auto;
   width: 100%;
   height: 100%;
-  padding: 24px;
-  box-sizing: border-box;
-  position: relative;
-  z-index: 1;
-}
-
-/* Wrapper - centers pages */
-#docx-preview-container .docx-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: none;
-  position: relative;
-  z-index: 1;
-}
-
-/* Page structure - each page is a separate container */
-#docx-preview-container .page {
-  background: white;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  margin: 0 auto 20px auto;
-  box-sizing: border-box;
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 100%;
-}
-
-/* Portrait pages - responsive, show full page */
-#docx-preview-container .page.portrait {
-  width: 100%;
-  max-width: 100%;
-  min-height: auto;
-}
-
-/* Landscape pages - responsive, show full page */
-#docx-preview-container .page.landscape {
-  width: 100%;
-  max-width: 100%;
-  min-height: auto;
-}
-
-/* Page content - preserve document styles */
-#docx-preview-container .page-content {
-  width: 100%;
-  height: 100%;
   padding: 0;
   box-sizing: border-box;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Images - allow max-width only on images, not on pages or wrapper */
+/* Wrapper - continuous document surface */
+#docx-preview-container .docx-wrapper {
+  display: block;
+  position: relative;
+  transform-origin: top center;
+  background: white;
+  /* Natural size - will be scaled to fit viewport */
+}
+
+/* Images - preserve aspect ratio */
 #docx-preview-container img {
   max-width: 100%;
   height: auto;
 }
 
-/* Lists - use native list-style, minimal interference */
+/* Lists - minimal interference, let docx-preview handle natively */
 #docx-preview-container ul,
 #docx-preview-container ol {
-  padding-left: 1.5em;
+  /* Only minimal padding if absolutely necessary */
   margin: 0.5em 0;
 }
 
-/* Native list items - no aggressive bullet forcing */
-#docx-preview-container ul li {
-  display: list-item;
-  list-style-position: outside;
-}
-
-/* Remove any ::before pseudo-elements that might duplicate bullets */
-#docx-preview-container ul li::before {
-  display: none;
-}
-
-/* Remove any ::marker content forcing */
-#docx-preview-container ul li::marker {
-  content: none;
-}
-
-/* Canvas elements for shapes - ensure transparent background, not black */
-#docx-preview-container .page canvas {
+/* Canvas elements - fix black backgrounds selectively */
+#docx-preview-container canvas {
   background-color: transparent;
-  background: transparent;
-}
-
-/* Page background - always white */
-#docx-preview-container .page {
-  background-color: white;
-  background: white;
-}
-
-/* Selective black background fix - only for elements that should be transparent/white */
-#docx-preview-container .page div[style*="background-color: black"],
-#docx-preview-container .page div[style*="background: black"],
-#docx-preview-container .page div[style*="background-color:rgb(0,0,0)"],
-#docx-preview-container .page div[style*="background:rgb(0,0,0)"] {
-  background-color: transparent;
-  background: transparent;
 }

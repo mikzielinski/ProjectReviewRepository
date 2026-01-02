@@ -137,7 +137,7 @@ const OfficeDocumentViewer = ({
     }
   }, [fileUrl, templateId, normalizedFileType])
 
-  // Inject dynamic fonts CSS
+  // Inject dynamic fonts CSS from backend styles endpoint
   useEffect(() => {
     if (docStyles?.font_families) {
       // Remove existing style tag if any
@@ -146,19 +146,17 @@ const OfficeDocumentViewer = ({
         existingStyle.remove()
       }
 
-      // Create new style tag with font mappings
+      // Create new style tag with font mappings from backend
       const style = document.createElement('style')
       style.id = 'docx-dynamic-fonts'
       let css = ''
       
-      // Add font-family mappings for each font
+      // Apply font-family mappings from backend response
+      // Do not use !important - let docx-preview handle fonts natively
       Object.entries(docStyles.font_families).forEach(([fontName, fontFamily]) => {
-        // Map font names to CSS classes or use data attributes
-        css += `.docx-wrapper [style*="${fontName}"], .docx-wrapper [data-font="${fontName}"] { font-family: ${fontFamily} !important; }\n`
+        // Map fonts without forcing - only as fallback
+        css += `.docx-wrapper [style*="font-family: ${fontName}"], .docx-wrapper [data-font="${fontName}"] { font-family: ${fontFamily}; }\n`
       })
-      
-      // Set default font on wrapper (Calibri fallback)
-      css += `.docx-wrapper { font-family: 'Calibri', 'Segoe UI', Arial, sans-serif; }\n`
       
       style.textContent = css
       document.head.appendChild(style)
@@ -172,7 +170,7 @@ const OfficeDocumentViewer = ({
     }
   }, [docStyles])
 
-  // Render DOCX using docx-preview with page-based structure
+  // Render DOCX as continuous surface with fit-to-viewport scaling
   useEffect(() => {
     if (normalizedFileType === 'docx' && fileBlob) {
       const container = document.getElementById('docx-preview-container')
@@ -186,7 +184,7 @@ const OfficeDocumentViewer = ({
           ignoreWidth: false,
           ignoreHeight: false,
           ignoreFonts: false, // Preserve fonts from document
-          breakPages: true,
+          breakPages: false, // No page breaks - continuous surface
           ignoreLastRenderedPageBreak: true,
           experimental: false,
           trimXmlDeclaration: true,
@@ -195,137 +193,72 @@ const OfficeDocumentViewer = ({
           .then(() => {
             console.log('DOCX rendered successfully')
             
-            // Post-render hook: wrap pages and apply orientations
-            const wrapper = container.querySelector('.docx-wrapper')
+            // Post-render: fit-to-viewport scaling
+            const wrapper = container.querySelector('.docx-wrapper') as HTMLElement
             if (wrapper) {
-              const orientations = docStyles?.page_orientations || []
-              
-              // Strategy: docx-preview renders content as a continuous flow
-              // We'll wrap the entire content in page containers based on backend orientations
-              // If we have multiple orientations, we'll create multiple pages
-              // Otherwise, we'll create a single page with detected/default orientation
-              
-              const wrapperChildren = Array.from(wrapper.children) as HTMLElement[]
-              
-              if (wrapperChildren.length > 0) {
-                // Create page containers based on orientations from backend
-                const pagesToCreate = orientations.length > 0 ? orientations.length : 1
-                const pages: HTMLElement[] = []
+              // Wait for layout to settle
+              setTimeout(() => {
+                // Measure natural document size
+                const docRect = wrapper.getBoundingClientRect()
+                const containerRect = container.getBoundingClientRect()
                 
-                for (let i = 0; i < pagesToCreate; i++) {
-                  const pageDiv = document.createElement('div')
-                  const orientation = orientations[i]?.orientation || 'portrait'
-                  pageDiv.className = `page ${orientation}`
-                  
-                  const pageContent = document.createElement('div')
-                  pageContent.className = 'page-content'
-                  pageDiv.appendChild(pageContent)
-                  
-                  pages.push(pageDiv)
-                }
+                // Get orientation from backend if available (for scaling strategy)
+                const orientations = docStyles?.page_orientations || []
+                const isLandscape = orientations.length > 0 && orientations[0].orientation === 'landscape'
                 
-                // Distribute content across pages
-                // Simple approach: if we have multiple pages, try to split at page breaks
-                // Otherwise, put everything in first page
-                if (pages.length === 1) {
-                  // Single page - wrap all content
-                  const pageContent = pages[0].querySelector('.page-content') as HTMLElement
-                  wrapperChildren.forEach(child => {
-                    pageContent.appendChild(child)
-                  })
+                // Calculate scale to fit viewport
+                // Strategy: fit width for landscape, fit page for portrait
+                let scale = 1
+                const padding = 40 // Padding around document
+                const availableWidth = containerRect.width - padding
+                const availableHeight = containerRect.height - padding
+                
+                if (isLandscape) {
+                  // Landscape: fit width
+                  scale = availableWidth / docRect.width
                 } else {
-                  // Multiple pages - try to find page breaks and split content
-                  const pageBreakIndices: number[] = []
+                  // Portrait: fit to smaller dimension (width or height)
+                  const scaleWidth = availableWidth / docRect.width
+                  const scaleHeight = availableHeight / docRect.height
+                  scale = Math.min(scaleWidth, scaleHeight, 1) // Don't scale up
+                }
+                
+                // Apply transform scale
+                wrapper.style.transform = `scale(${scale})`
+                wrapper.style.transformOrigin = 'top center'
+                
+                // Fix black backgrounds on shapes/canvas elements (selective fix only)
+                const canvasElements = wrapper.querySelectorAll('canvas')
+                canvasElements.forEach((canvas) => {
+                  const canvasEl = canvas as HTMLCanvasElement
+                  const bgColor = window.getComputedStyle(canvasEl).backgroundColor
+                  if (bgColor === 'rgb(0, 0, 0)' || bgColor === 'black') {
+                    canvasEl.style.backgroundColor = 'transparent'
+                  }
+                })
+                
+                // Fix black div backgrounds (only for shape elements, not document content)
+                wrapper.querySelectorAll('div').forEach((div) => {
+                  const divEl = div as HTMLElement
+                  if (divEl.classList.contains('docx-wrapper')) {
+                    return // Skip wrapper
+                  }
                   
-                  wrapperChildren.forEach((child, idx) => {
-                    const style = window.getComputedStyle(child)
-                    if (style.pageBreakBefore === 'always' || style.pageBreakBefore === 'page' ||
-                        child.style.pageBreakBefore === 'always' || child.style.pageBreakBefore === 'page') {
-                      pageBreakIndices.push(idx)
-                    }
-                  })
-                  
-                  // Distribute content across pages
-                  let currentPageIndex = 0
-                  let currentPageContent = pages[0].querySelector('.page-content') as HTMLElement
-                  
-                  wrapperChildren.forEach((child, idx) => {
-                    // Check if we should move to next page
-                    if (pageBreakIndices.includes(idx) && currentPageIndex < pages.length - 1) {
-                      currentPageIndex++
-                      currentPageContent = pages[currentPageIndex].querySelector('.page-content') as HTMLElement
-                    }
-                    
-                    if (currentPageContent) {
-                      currentPageContent.appendChild(child)
-                    }
-                  })
-                }
+                  const bgColor = window.getComputedStyle(divEl).backgroundColor
+                  // Only fix if it's clearly a shape element (has specific dimensions or styles)
+                  if ((bgColor === 'rgb(0, 0, 0)' || bgColor === 'black') && 
+                      (divEl.style.width || divEl.style.height || divEl.querySelector('canvas'))) {
+                    divEl.style.backgroundColor = 'transparent'
+                  }
+                })
                 
-                // Clear wrapper and add pages
-                wrapper.innerHTML = ''
-                pages.forEach(page => wrapper.appendChild(page))
-              }
-              
-              // Apply orientation classes to all pages (ensure they're correct)
-              const finalPages = wrapper.querySelectorAll('.page')
-              finalPages.forEach((page, index) => {
-                const pageEl = page as HTMLElement
-                let orientation: 'portrait' | 'landscape' = 'portrait'
-                
-                if (orientations.length > index) {
-                  orientation = orientations[index].orientation
-                } else if (finalPages.length === 1) {
-                  // Single page - try to detect orientation from dimensions
-                  setTimeout(() => {
-                    const rect = pageEl.getBoundingClientRect()
-                    if (rect.width > rect.height && rect.width > 0 && rect.height > 0) {
-                      pageEl.className = 'page landscape'
-                    }
-                  }, 100)
-                  return
-                }
-                
-                pageEl.className = `page ${orientation}`
-              })
-              
-              // Ensure white background on all pages
-              finalPages.forEach((page) => {
-                const pageEl = page as HTMLElement
-                pageEl.style.backgroundColor = 'white'
-                pageEl.style.background = 'white'
-              })
-              
-              // Fix black backgrounds on shapes/canvas elements (selective fix)
-              const canvasElements = wrapper.querySelectorAll('canvas')
-              canvasElements.forEach((canvas) => {
-                const canvasEl = canvas as HTMLCanvasElement
-                const bgColor = window.getComputedStyle(canvasEl).backgroundColor
-                if (bgColor === 'rgb(0, 0, 0)' || bgColor === 'black') {
-                  canvasEl.style.backgroundColor = 'transparent'
-                  canvasEl.style.background = 'transparent'
-                }
-              })
-              
-              // Fix black div backgrounds (selective - only for shape elements, not page containers)
-              wrapper.querySelectorAll('div').forEach((div) => {
-                const divEl = div as HTMLElement
-                if (divEl.classList.contains('page') || divEl.classList.contains('page-content') || divEl.classList.contains('docx-wrapper')) {
-                  return // Skip page containers
-                }
-                
-                const bgColor = window.getComputedStyle(divEl).backgroundColor
-                if (bgColor === 'rgb(0, 0, 0)' || bgColor === 'black') {
-                  // This is likely a shape with incorrect background
-                  divEl.style.backgroundColor = 'transparent'
-                  divEl.style.background = 'transparent'
-                }
-              })
-              
-              console.log('DOCX post-render processing complete', {
-                pagesCreated: finalPages.length,
-                orientations: orientations.length
-              })
+                console.log('DOCX fit-to-viewport complete', {
+                  scale,
+                  docSize: { width: docRect.width, height: docRect.height },
+                  containerSize: { width: containerRect.width, height: containerRect.height },
+                  orientation: isLandscape ? 'landscape' : 'portrait'
+                })
+              }, 100) // Small delay to ensure layout is complete
             }
           })
           .catch((err) => {
@@ -423,6 +356,9 @@ const OfficeDocumentViewer = ({
   }
 
   // For DOCX, use docx-preview which renders DOCX as HTML
+  // TODO: PDF fallback for documents with complex graphics (gradients, shapes)
+  // When backend endpoint /templates/{id}/pdf is available, detect complex graphics
+  // and use PDF preview for better visual fidelity
   if (normalizedFileType === 'docx' && fileBlob) {
     return (
       <div 
@@ -432,7 +368,9 @@ const OfficeDocumentViewer = ({
           height: '100%',
           position: 'relative',
           overflow: 'auto',
-          display: 'block'
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
         }}
       />
     )
@@ -1181,21 +1119,20 @@ const Templates = () => {
                 background: '#e9ecef',
                 minWidth: 0,
                 position: 'relative',
-                overflow: 'auto',
+                overflow: 'hidden',
                 display: 'flex',
-                flexDirection: 'column',
-                zIndex: 1
+                flexDirection: 'column'
               }}>
-                {/* Document viewer - fills entire right panel */}
+                {/* Document viewer - fills entire right panel, scrollable */}
                 <div style={{
                   width: '100%',
                   height: '100%',
                   background: '#f5f5f5',
                   position: 'relative',
-                  overflow: 'visible',
-                  display: 'block',
-                  zIndex: 1,
-                  minHeight: '100%'
+                  overflow: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}>
                   {renderContent(viewingTemplate)}
                 </div>
