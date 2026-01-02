@@ -1,0 +1,144 @@
+.gantt-container {
+  margin-top: 1.5rem;
+}
+
+.gantt-stage {
+  margin-bottom: 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background: white;
+}
+
+.gantt-stage-header {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.gantt-stage-header:hover {
+  background: #e9ecef;
+}
+
+.gantt-stage-toggle {
+  margin-right: 0.5rem;
+  font-size: 0.8rem;
+  color: #7f8c8d;
+}
+
+.gantt-stage-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #2c3e50;
+  flex: 1;
+}
+
+.gantt-stage-count {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+}
+
+.gantt-stage-tasks {
+  padding: 1rem;
+}
+
+.gantt-task-row {
+  display: grid;
+  grid-template-columns: 2fr 3fr 1fr;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+}
+
+.gantt-task-row:last-child {
+  border-bottom: none;
+}
+
+.gantt-task-row:hover {
+  background: #f8f9fa;
+}
+
+.gantt-task-info {
+  min-width: 0;
+}
+
+.gantt-task-title {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.3rem;
+  word-wrap: break-word;
+}
+
+.gantt-task-subtitle {
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  margin-bottom: 0.3rem;
+}
+
+.gantt-task-meta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: #95a5a6;
+}
+
+.gantt-task-assignee,
+.gantt-task-time,
+.gantt-task-due {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.gantt-task-bar-container {
+  position: relative;
+  height: 30px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.gantt-task-bar {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: width 0.3s;
+  border-radius: 4px;
+}
+
+.gantt-task-bar-label {
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.gantt-task-status {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .gantt-task-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .gantt-task-bar-container {
+    order: 2;
+  }
+  
+  .gantt-task-status {
+    order: 3;
+    justify-content: flex-start;
+  }
+}
+
