@@ -1,0 +1,143 @@
+.project-documents-tree {
+  display: flex;
+  gap: 1.5rem;
+  height: calc(100vh - 300px);
+  min-height: 500px;
+}
+
+.documents-tree-sidebar {
+  width: 300px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.documents-tree-header {
+  padding: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.documents-tree-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.documents-tree-item {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s;
+  user-select: none;
+}
+
+.documents-tree-item:hover {
+  background-color: #f0f0f0;
+}
+
+.documents-tree-item.folder {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.documents-tree-item.document {
+  color: #555;
+  padding-left: 2rem;
+}
+
+.documents-tree-item.document:hover {
+  background-color: #e8f4f8;
+}
+
+.documents-tree-item.document.selected {
+  background-color: #d1ecf1;
+  border-left: 3px solid #3498db;
+}
+
+.documents-tree-item-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.documents-tree-item-name {
+  flex: 1;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.documents-tree-item-badge {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  background: #e9ecef;
+  color: #495057;
+  font-weight: 500;
+}
+
+.documents-tree-toggle {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #666;
+  transition: transform 0.2s;
+}
+
+.documents-tree-toggle.expanded {
+  transform: rotate(90deg);
+}
+
+.documents-tree-toggle svg {
+  width: 12px;
+  height: 12px;
+}
+
+.documents-viewer {
+  flex: 1;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.documents-viewer-header {
+  padding: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.documents-viewer-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.documents-viewer-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #999;
+  font-size: 0.95rem;
+}
+

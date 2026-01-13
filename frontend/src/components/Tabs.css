@@ -185,6 +185,16 @@
   color: #856404;
 }
 
+.badge-danger {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.badge-secondary {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
 .empty-state {
   text-align: center;
   padding: 3rem;

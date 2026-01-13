@@ -37,7 +37,7 @@ const FolderTree = ({ onProjectClick }: FolderTreeProps) => {
   const [contextMenu, setContextMenu] = useState<{ type: 'folder' | 'project', id: string, x: number, y: number } | null>(null)
   const navigate = useNavigate()
   const location = useLocation()
-  const { user } = useAuth()
+  // const { user } = useAuth() // Not used currently
 
   useEffect(() => {
     const handleClickOutside = () => {
@@ -204,7 +204,7 @@ const FolderTree = ({ onProjectClick }: FolderTreeProps) => {
     const isExpanded = expandedFolders.has(folderId)
     const hasChildren = folder.subfolders.length > 0 || folder.projects.length > 0
     const isRoot = folder.id === null
-    const availableFolders = getAllFoldersFlat(allFolders.length > 0 ? allFolders : folders)
+    // const availableFolders = getAllFoldersFlat(allFolders.length > 0 ? allFolders : folders) // Not used currently
     const activeProjectId = getActiveProjectId()
 
     return (

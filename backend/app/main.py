@@ -24,20 +24,30 @@ logger.info("✅ Models imported")
 from app.core.enums import RoleCode
 logger.info("✅ Enums imported")
 
-from app.routers import auth, projects, members, templates, documents, users, folders
+from app.routers import auth, projects, members, templates, documents, users, folders, document_types
 logger.info("✅ Routers imported")
 
 app = FastAPI(title="DMS Governance API", version="0.1.0")
 
 # CORS middleware - must be added before exception handlers
+# Get allowed origins from environment or use defaults
+import os
+allowed_origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+    "https://mikzielinski.github.io",
+    "https://mikzielinski.github.io/ProjectReviewRepository",
+]
+
+# Add custom origins from environment if set
+if os.getenv("CORS_ORIGINS"):
+    allowed_origins.extend(os.getenv("CORS_ORIGINS").split(","))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:3000",
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -55,7 +65,11 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         "http://localhost:3000",
         "http://127.0.0.1:5173",
         "http://127.0.0.1:3000",
+        "https://mikzielinski.github.io",
+        "https://mikzielinski.github.io/ProjectReviewRepository",
     ]
+    if os.getenv("CORS_ORIGINS"):
+        allowed_origins.extend(os.getenv("CORS_ORIGINS").split(","))
     
     headers = {}
     if origin in allowed_origins:
@@ -89,7 +103,11 @@ async def global_exception_handler(request: Request, exc: Exception):
         "http://localhost:3000",
         "http://127.0.0.1:5173",
         "http://127.0.0.1:3000",
+        "https://mikzielinski.github.io",
+        "https://mikzielinski.github.io/ProjectReviewRepository",
     ]
+    if os.getenv("CORS_ORIGINS"):
+        allowed_origins.extend(os.getenv("CORS_ORIGINS").split(","))
     
     headers = {}
     if origin in allowed_origins:
@@ -142,6 +160,70 @@ def seed_roles():
         session.close()
 
 
+def seed_document_types():
+    """Seed default document types if they don't exist."""
+    from app.models import DocumentType, User, Org
+    import uuid
+    
+    session: Session = SessionLocal()
+    try:
+        # Get first user as creator (or create a system user)
+        creator = session.query(User).first()
+        if not creator:
+            logger.warning("No users found, skipping document type seeding")
+            return
+        
+        # Default document types to create
+        default_types = [
+            {"code": "PDD", "name": "PDD", "description": "Product Design Document", "extension": "docx"},
+            {"code": "SDD", "name": "SDD", "description": "System Design Document", "extension": "docx"},
+            {"code": "TSS", "name": "TSS", "description": "Technical Specification Sheet", "extension": "docx"},
+            {"code": "TEST_PLAN", "name": "Test Plan", "description": "Test Plan Document", "extension": "xlsx"},
+            {"code": "RELEASE_NOTES", "name": "Release Notes", "description": "Release Notes Document", "extension": "docx"},
+            # Project Data Mapping types
+            {"code": "DATA_MAP_BPMN", "name": "Project Data Mapping - BPMN", "description": "Business Process Model and Notation for Project Data Mapping", "extension": "bpmn"},
+            {"code": "DATA_MAP_BPMN20", "name": "Project Data Mapping - BPMN 2.0", "description": "BPMN 2.0 XML for Project Data Mapping", "extension": "bpmn20"},
+            {"code": "DATA_MAP_UML", "name": "Project Data Mapping - UML", "description": "UML Diagram for Project Data Mapping", "extension": "uml"},
+            {"code": "DATA_MAP_UML_XMI", "name": "Project Data Mapping - UML XMI", "description": "UML XMI Metadata Interchange for Project Data Mapping", "extension": "xmi"},
+            {"code": "DATA_MAP_TOGAF", "name": "Project Data Mapping - TOGAF", "description": "TOGAF Architecture Framework for Project Data Mapping", "extension": "xml"},
+            {"code": "DATA_MAP_ARCHIMATE", "name": "Project Data Mapping - ArchiMate", "description": "ArchiMate Model Exchange for Project Data Mapping", "extension": "archimate"},
+            {"code": "DATA_MAP_ARCHI", "name": "Project Data Mapping - Archi", "description": "Archi Model File for Project Data Mapping", "extension": "archi"},
+            {"code": "DATA_MAP_ERD", "name": "Project Data Mapping - ERD", "description": "Entity Relationship Diagram for Project Data Mapping", "extension": "xml"},
+            {"code": "DATA_MAP_XSD", "name": "Project Data Mapping - XSD", "description": "XML Schema Definition for Project Data Mapping", "extension": "xsd"},
+            {"code": "DATA_MAP_JSON_SCHEMA", "name": "Project Data Mapping - JSON Schema", "description": "JSON Schema for Project Data Mapping", "extension": "json"},
+            {"code": "DATA_MAP_CSV_MAPPING", "name": "Project Data Mapping - CSV Mapping", "description": "CSV Field Mapping Document for Project Data Mapping", "extension": "csv"},
+            {"code": "DATA_MAP_YAML_CONFIG", "name": "Project Data Mapping - YAML Config", "description": "YAML Configuration for Project Data Mapping", "extension": "yaml"},
+            {"code": "DATA_MAP_DRAWIO", "name": "Project Data Mapping - Draw.io", "description": "Draw.io Diagram for Project Data Mapping", "extension": "drawio"},
+            {"code": "DATA_MAP_VISIO", "name": "Project Data Mapping - Visio", "description": "Microsoft Visio Diagram for Project Data Mapping", "extension": "vsdx"},
+        ]
+        
+        for dt in default_types:
+            existing = session.query(DocumentType).filter(DocumentType.code == dt["code"]).first()
+            if not existing:
+                doc_type = DocumentType(
+                    org_id=None,  # Global type
+                    code=dt["code"],
+                    name=dt["name"],
+                    description=dt["description"],
+                    default_file_extension=dt["extension"],
+                    is_active=True,
+                    created_by=creator.id
+                )
+                session.add(doc_type)
+                logger.info(f"Created default document type: {dt['code']}")
+        
+        session.commit()
+        logger.info("Document types seeded successfully")
+    except Exception as e:
+        logger.error(f"Error seeding document types: {e}")
+        print(f"ERROR seeding document types: {e}")
+        import traceback
+        traceback.print_exc()
+        session.rollback()
+    finally:
+        session.close()
+
+
 # Include routers with /api/v1 prefix for frontend compatibility
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(projects.router, prefix="/api/v1")
@@ -150,6 +232,7 @@ app.include_router(folders.router, prefix="/api/v1")
 app.include_router(templates.router, prefix="/api/v1")
 app.include_router(documents.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
+app.include_router(document_types.router, prefix="/api/v1")
 
 
 @app.on_event("startup")
@@ -184,6 +267,18 @@ async def startup_event():
         except Exception as e:
             logger.error(f"Error seeding roles on startup: {e}")
             print(f"ERROR seeding roles on startup: {e}")
+            import traceback
+            traceback.print_exc()
+        
+        try:
+            logger.info("Seeding document types...")
+            print("STARTUP: Seeding document types...")
+            seed_document_types()
+            logger.info("Document types seeded successfully")
+            print("STARTUP: Document types seeded successfully")
+        except Exception as e:
+            logger.error(f"Error seeding document types on startup: {e}")
+            print(f"ERROR seeding document types on startup: {e}")
             import traceback
             traceback.print_exc()
     

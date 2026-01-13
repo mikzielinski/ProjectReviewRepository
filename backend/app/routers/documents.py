@@ -25,7 +25,28 @@ def list_documents(
         project_uuid = UUID(project_id)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid project ID format")
-    return db.query(Document).filter(Document.project_id == project_uuid).all()
+    # Load documents with current_version using join
+    documents = db.query(Document).filter(Document.project_id == project_uuid).all()
+    # Get current_version for each document
+    result = []
+    for doc in documents:
+        current_version_state = None
+        if doc.current_version_id:
+            current_version = db.query(DocumentVersion).filter(DocumentVersion.id == doc.current_version_id).first()
+            if current_version:
+                current_version_state = current_version.state
+        doc_dict = {
+            "id": doc.id,
+            "project_id": doc.project_id,
+            "doc_type": doc.doc_type,
+            "title": doc.title,
+            "current_version_id": doc.current_version_id,
+            "current_version_state": current_version_state,
+            "created_by": doc.created_by,
+            "created_at": doc.created_at
+        }
+        result.append(DocumentRead(**doc_dict))
+    return result
 
 
 @router.post("/projects/{project_id}/documents", response_model=DocumentRead, status_code=status.HTTP_201_CREATED)

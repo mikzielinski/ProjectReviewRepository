@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import api from '../services/api'
+import ProjectSetupWizard from '../components/ProjectSetupWizard'
 import './Projects.css'
 
 interface Project {
@@ -43,6 +44,8 @@ const Projects = () => {
   const [taskUpdateComment, setTaskUpdateComment] = useState('')
   const [taskFile, setTaskFile] = useState<File | null>(null)
   const [showTaskModal, setShowTaskModal] = useState(false)
+  const [showWizard, setShowWizard] = useState(false)
+  const [wizardProject, setWizardProject] = useState<Project | null>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -134,33 +137,53 @@ const Projects = () => {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
-    setCreating(true)
+    // Open wizard instead of direct create
+    setShowWizard(true)
+    setShowCreateForm(false)
+  }
+
+  const handleWizardComplete = async (projectData: any) => {
     try {
-      const payload: any = {
-        key: formData.key,
-        name: formData.name,
-        status: formData.status
+      setCreating(true)
+      let projectId: string | null = null
+      if (wizardProject) {
+        // Update existing project
+        await api.put(`/projects/${wizardProject.id}`, projectData)
+        projectId = wizardProject.id
+      } else {
+        // Create new project
+        const response = await api.post('/projects', projectData)
+        projectId = response.data.id
       }
-      if (formData.folder_id) {
-        payload.folder_id = formData.folder_id
-      }
-      await api.post('/projects', payload)
-      setShowCreateForm(false)
+      setShowWizard(false)
+      setWizardProject(null)
       setFormData({ key: '', name: '', status: 'ACTIVE', folder_id: '' })
       loadProjects()
-      loadFolders() // Refresh folders to show new project
+      loadFolders()
+      
+      // Navigate to project detail page
+      if (projectId) {
+        navigate(`/projects/${projectId}`)
+      }
     } catch (err: any) {
-      alert(err.response?.data?.detail || 'Failed to create project')
+      alert(err.response?.data?.detail || `Failed to ${wizardProject ? 'update' : 'create'} project`)
     } finally {
       setCreating(false)
     }
   }
 
+  const handleWizardCancel = () => {
+    setShowWizard(false)
+    setWizardProject(null)
+  }
+
   const handleEdit = (project: Project, e: React.MouseEvent) => {
     e.stopPropagation()
-    setEditingProject(project)
-    setFormData({ key: project.key, name: project.name, status: project.status, folder_id: '' })
+    // Open wizard for editing
+    setWizardProject(project)
+    setShowWizard(true)
     setShowCreateForm(false)
+    setEditingProject(null)
   }
 
   const handleUpdate = async (e: React.FormEvent) => {
@@ -174,7 +197,7 @@ const Projects = () => {
         status: formData.status,
       })
       setEditingProject(null)
-      setFormData({ key: '', name: '', status: 'ACTIVE' })
+      setFormData({ key: '', name: '', status: 'ACTIVE', folder_id: '' })
       loadProjects()
     } catch (err: any) {
       alert(err.response?.data?.detail || 'Failed to update project')
@@ -220,7 +243,9 @@ const Projects = () => {
           <button 
             className="btn btn-primary"
             onClick={() => {
-              setShowCreateForm(!showCreateForm)
+              setShowWizard(true)
+              setWizardProject(null)
+              setShowCreateForm(false)
               setEditingProject(null)
             }}
           >
@@ -723,6 +748,15 @@ const Projects = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Project Setup Wizard */}
+        {showWizard && (
+          <ProjectSetupWizard
+            project={wizardProject || undefined}
+            onComplete={handleWizardComplete}
+            onCancel={handleWizardCancel}
+          />
         )}
       </div>
     </Layout>

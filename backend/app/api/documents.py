@@ -588,6 +588,82 @@ def add_comment(
     )
 
 
+@router.get("/documents/{document_id}/versions", response_model=List[DocumentVersionResponse])
+def list_versions(
+    document_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """List all versions of a document."""
+    document = db.query(Document).filter(Document.id == document_id).first()
+    
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found",
+        )
+    
+    versions = db.query(DocumentVersion).filter(
+        DocumentVersion.document_id == document_id
+    ).order_by(DocumentVersion.created_at.desc()).all()
+    
+    return [_build_version_response(v) for v in versions]
+
+
+@router.put("/documents/{document_id}/versions/{version_id}/set-current")
+def set_current_version(
+    request: Request,
+    document_id: uuid.UUID,
+    version_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Set a specific version as the current/active version of a document."""
+    document = db.query(Document).filter(Document.id == document_id).first()
+    
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found",
+        )
+    
+    version = db.query(DocumentVersion).filter(
+        DocumentVersion.id == version_id,
+        DocumentVersion.document_id == document_id
+    ).first()
+    
+    if not version:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document version not found",
+        )
+    
+    # Store before state for audit
+    before_version_id = str(document.current_version_id) if document.current_version_id else None
+    
+    # Set as current version
+    document.current_version_id = version.id
+    db.commit()
+    db.refresh(document)
+    
+    # Audit log
+    client_info = get_client_info(request)
+    log_action(
+        db,
+        org_id=document.project.org_id,
+        actor_user_id=current_user.id,
+        action=AuditAction.DOCUMENT_UPDATE,
+        entity_type="Document",
+        entity_id=str(document.id),
+        before_json={"current_version_id": before_version_id},
+        after_json={"current_version_id": str(version.id), "version_string": version.version_string},
+        ip=client_info.get("ip"),
+        user_agent=client_info.get("user_agent"),
+    )
+    
+    return {"status": "updated", "current_version_id": str(version.id), "version_string": version.version_string}
+
+
 @router.get("/versions/{version_id}", response_model=DocumentVersionResponse)
 def get_version(
     version_id: uuid.UUID,

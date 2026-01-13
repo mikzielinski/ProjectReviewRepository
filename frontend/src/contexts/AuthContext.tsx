@@ -59,14 +59,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         console.warn('No user data in response')
       }
     } catch (error: any) {
-      console.error('Login error:', error)
+      console.error('❌ Login error:', error)
       console.error('Error type:', error.constructor.name)
       console.error('Error message:', error.message)
+      console.error('Error code:', error.code)
       console.error('Error response status:', error.response?.status)
       console.error('Error response data:', error.response?.data)
       console.error('Error response headers:', error.response?.headers)
-      if (error.request) {
-        console.error('Request was made but no response received:', error.request)
+      if (error.request && !error.response) {
+        console.error('🔴 Request was made but no response received')
+        console.error('Request URL:', error.config?.url)
+        console.error('Request baseURL:', error.config?.baseURL)
+        if (error.code === 'ECONNREFUSED') {
+          alert('❌ Backend server is not running!\n\nPlease start the backend server:\ncd backend && python -m uvicorn app.main:app --reload')
+        } else if (error.code === 'ETIMEDOUT' || error.message.includes('timeout')) {
+          alert('⏱️ Request timeout!\n\nThe backend server may be slow or unresponsive.\nPlease check if the server is running.')
+        } else if (error.message.includes('Network Error') || error.message.includes('Failed to fetch')) {
+          alert('🌐 Network error!\n\nPlease check:\n1. Backend server is running on http://localhost:8000\n2. CORS is configured correctly\n3. No firewall blocking the connection')
+        }
       }
       throw error
     }

@@ -227,13 +227,25 @@ def create_project(
         if folder.org_id != org_id:
             raise HTTPException(status_code=400, detail="Folder belongs to different organization")
     
+    # Set default RACI if not provided
+    raci_matrix_json = payload.raci_matrix_json
+    if not raci_matrix_json or not raci_matrix_json.get("stages"):
+        raci_matrix_json = {
+            "stages": [
+                {"name": "Discovery", "tasks": []},
+                {"name": "Design", "tasks": []},
+                {"name": "Implementation", "tasks": []}
+            ]
+        }
+    
     project = Project(
         org_id=org_id,
         folder_id=folder_id,
         key=payload.key,
         name=payload.name,
         status=payload.status or "ACTIVE",
-        retention_policy_json=payload.retention_policy_json
+        retention_policy_json=payload.retention_policy_json,
+        raci_matrix_json=raci_matrix_json
     )
     db.add(project)
     db.flush()  # Flush to get project.id
@@ -251,6 +263,69 @@ def create_project(
         invited_by=current_user.id
     )
     db.add(creator_member)
+    
+    # Helper function to invite user (avoid duplicates)
+    def invite_user_if_not_exists(user_id, role_code: str):
+        """Invite user to project if not already a member with this role"""
+        existing = db.query(ProjectMember).filter(
+            ProjectMember.project_id == project.id,
+            ProjectMember.user_id == user_id,
+            ProjectMember.role_code == role_code
+        ).first()
+        if not existing:
+            member = ProjectMember(
+                project_id=project.id,
+                user_id=user_id,
+                role_code=role_code,
+                is_temporary=False,
+                expires_at=None,
+                invited_by=current_user.id
+            )
+            db.add(member)
+            logger.info(f"Invited user {user_id} with role {role_code} to project {project.id}")
+    
+    # Invite Document Creators from required document types
+    if payload.required_document_types_json:
+        document_creator_ids = set()
+        for doc_type in payload.required_document_types_json:
+            if doc_type.get("document_creator_user_id"):
+                document_creator_ids.add(doc_type["document_creator_user_id"])
+        
+        for creator_id_str in document_creator_ids:
+            try:
+                from uuid import UUID
+                creator_id = UUID(creator_id_str) if isinstance(creator_id_str, str) else creator_id_str
+                invite_user_if_not_exists(creator_id, "Business Owner")
+            except Exception as e:
+                logger.warning(f"Failed to invite document creator {creator_id_str}: {e}")
+    
+    # Invite users from approval policies (reviewers and approvers)
+    if payload.approval_policies_json and payload.approval_policies_json.get("document_type_approvals"):
+        user_ids_to_invite = set()
+        for approval_rule in payload.approval_policies_json["document_type_approvals"]:
+            if approval_rule.get("reviewer_user_id"):
+                user_ids_to_invite.add((approval_rule["reviewer_user_id"], "SME"))  # Default role for reviewers
+            if approval_rule.get("approver_user_id"):
+                user_ids_to_invite.add((approval_rule["approver_user_id"], "Business Owner"))  # Default role for approvers
+        
+        for user_id_str, role_code in user_ids_to_invite:
+            try:
+                from uuid import UUID
+                user_id = UUID(user_id_str) if isinstance(user_id_str, str) else user_id_str
+                invite_user_if_not_exists(user_id, role_code)
+            except Exception as e:
+                logger.warning(f"Failed to invite user {user_id_str} from approval policies: {e}")
+    
+    # Invite users from invited_users list
+    if payload.invited_users:
+        for invite_data in payload.invited_users:
+            try:
+                from uuid import UUID
+                user_id = UUID(invite_data["user_id"]) if isinstance(invite_data["user_id"], str) else invite_data["user_id"]
+                role_code = invite_data.get("role_code", "SME")
+                invite_user_if_not_exists(user_id, role_code)
+            except Exception as e:
+                logger.warning(f"Failed to invite user from invited_users list: {e}")
     
     db.commit()
     db.refresh(project)
@@ -298,8 +373,10 @@ def update_project(
         project.status = payload.status
     if payload.retention_policy_json is not None:
         project.retention_policy_json = payload.retention_policy_json
-    
-    db.add(project)
+    if payload.raci_matrix_json is not None:
+        project.raci_matrix_json = payload.raci_matrix_json
+    # Note: approval_policies_json and escalation_chain_json may not be in model yet
+    # but we accept them in schema for future use
     db.commit()
     db.refresh(project)
     return project

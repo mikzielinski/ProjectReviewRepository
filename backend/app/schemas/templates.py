@@ -34,6 +34,10 @@ class TemplateRead(BaseModel):
     version: str
     object_key: str
     file_hash: str
+    pdf_object_key: Optional[str] = None
+    pdf_hash: Optional[str] = None
+    checked_out_by: Optional[UUID] = None
+    checked_out_at: Optional[datetime] = None
     status: str
     mapping_manifest_json: dict
     created_by: UUID

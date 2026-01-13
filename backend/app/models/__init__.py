@@ -19,6 +19,7 @@ from .entities import (
     PKBSnapshot,
     AIRun,
     AuditLog,
+    DocumentType,
 )
 
 __all__ = [
@@ -42,5 +43,6 @@ __all__ = [
     "PKBSnapshot",
     "AIRun",
     "AuditLog",
+    "DocumentType",
 ]
 

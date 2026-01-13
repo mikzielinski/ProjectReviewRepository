@@ -125,3 +125,35 @@ def generate_object_key(prefix: str, filename: str, project_id: str = None) -> s
     
     return os.path.join(prefix, unique_filename).replace("\\", "/")
 
+
+def delete_file(object_key: str) -> bool:
+    """
+    Delete file from storage.
+    
+    Args:
+        object_key: Storage key for the file
+    
+    Returns:
+        True if file was deleted, False if file didn't exist
+    """
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    
+    # Ensure storage directory exists
+    ensure_storage_dir()
+    
+    full_path = os.path.join(STORAGE_BASE, object_key)
+    
+    if not os.path.exists(full_path):
+        logger.warning(f"File not found for deletion: {object_key} (full path: {full_path})")
+        return False
+    
+    try:
+        os.remove(full_path)
+        logger.info(f"File deleted successfully: {object_key}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to delete file {object_key}: {str(e)}")
+        raise
+

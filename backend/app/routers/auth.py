@@ -25,6 +25,8 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
         logger.info(f"User found: {user is not None}")
         print(f"User found: {user is not None}")
         if user:
+            if not user.is_active:
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User account is inactive")
             if user.password_hash and payload.password:
                 if not verify_password(payload.password, user.password_hash):
                     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
@@ -51,6 +53,10 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
         logger.info(f"Login successful for user: {user.email}")
         print(f"LOGIN SUCCESS: user={user.email}")
         return Token(access_token=token, user=user_data)
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 401 Unauthorized) without modification
+        db.rollback()
+        raise
     except Exception as e:
         db.rollback()
         logger.error(f"Login failed: {str(e)}", exc_info=True)

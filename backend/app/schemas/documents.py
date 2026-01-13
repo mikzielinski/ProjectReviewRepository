@@ -17,6 +17,7 @@ class DocumentRead(BaseModel):
     doc_type: str
     title: str
     current_version_id: Optional[UUID] = None
+    current_version_state: Optional[str] = None  # State of current version (DRAFT, IN_REVIEW, APPROVED, RELEASED, ARCHIVED)
     created_by: UUID
     created_at: datetime
 

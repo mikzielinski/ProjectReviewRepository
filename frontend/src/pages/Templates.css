@@ -53,6 +53,15 @@
   font-size: 0.85rem;
 }
 
+.btn-info {
+  background: #17a2b8;
+  color: white;
+}
+
+.btn-info:hover:not(:disabled) {
+  background: #138496;
+}
+
 .create-form {
   background: white;
   padding: 1.5rem;
@@ -166,8 +175,9 @@
   color: #7f8c8d;
 }
 
-/* Full-screen document viewer modal - Clean version */
-.modal-overlay {
+
+/* Template Viewer Modal */
+.template-viewer-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -175,28 +185,22 @@
   bottom: 0;
   background: rgba(0, 0, 0, 0.75);
   z-index: 10000;
-  overflow: hidden;
-  padding: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
 }
 
-.modal-content.document-modal {
+.template-viewer-content {
   background: white;
-  border-radius: 0;
-  width: 100vw;
-  height: 100vh;
-  max-width: none;
-  max-height: none;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  box-shadow: none;
-  margin: 0;
   position: relative;
   overflow: hidden;
-  z-index: 10001;
 }
 
-
-.modal-header {
+.template-viewer-header {
   padding: 1.5rem;
   border-bottom: 1px solid #dee2e6;
   display: flex;
@@ -205,13 +209,13 @@
   flex-shrink: 0;
 }
 
-.modal-header h2 {
+.template-viewer-header h2 {
   margin: 0;
   color: #2c3e50;
   font-size: 1.5rem;
 }
 
-.modal-close {
+.template-viewer-close {
   background: none;
   border: none;
   font-size: 2rem;
@@ -227,42 +231,39 @@
   transition: all 0.2s;
 }
 
-.modal-close:hover {
+.template-viewer-close:hover {
   background: #f0f0f0;
   color: #2c3e50;
 }
 
-.modal-body {
-  padding: 0;
-  overflow: auto;
+.template-viewer-body {
   flex: 1;
   min-height: 0;
-  display: flex;
+  overflow: auto;
+  background: #f5f5f5;
   position: relative;
-  z-index: 1;
 }
 
-.modal-actions {
+.template-viewer-footer {
   padding: 1rem 1.5rem;
   border-top: 1px solid #dee2e6;
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
   flex-shrink: 0;
+  background: white;
 }
 
-/* DOCX Preview Container - Continuous surface, no A4 pages */
+/* DOCX Preview Container - Simple and clean */
 #docx-preview-container {
-  background: #f5f5f5;
-  overflow: auto;
   width: 100%;
-  height: 100%;
-  padding: 0;
+  min-height: 100%;
+  padding: 20px;
   box-sizing: border-box;
-  position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  background: #f5f5f5;
 }
 
 /* Wrapper - continuous document surface */
@@ -270,8 +271,95 @@
   display: block;
   position: relative;
   transform-origin: top center;
+  background: transparent !important;
+  margin: 0 auto;
+}
+
+/* Page containers - each page is wrapped with spacing and has white background */
+#docx-preview-container .docx-wrapper .docx-page {
+  background: white !important;
+  background-color: white !important;
+  margin-bottom: 60px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+/* Force white background on all elements inside page containers, except tables */
+#docx-preview-container .docx-wrapper .docx-page * {
+  background: white !important;
+  background-color: white !important;
+}
+
+/* Preserve table colors - override the above rule for table elements */
+#docx-preview-container .docx-wrapper .docx-page table,
+#docx-preview-container .docx-wrapper .docx-page table *,
+#docx-preview-container .docx-wrapper .docx-page th,
+#docx-preview-container .docx-wrapper .docx-page td,
+#docx-preview-container .docx-wrapper .docx-page tr,
+#docx-preview-container .docx-wrapper .docx-page thead,
+#docx-preview-container .docx-wrapper .docx-page tbody {
+  background: revert !important;
+  background-color: revert !important;
+}
+
+/* Ensure section.docx-wrapper elements inside page containers have white background */
+#docx-preview-container .docx-wrapper .docx-page section.docx-wrapper {
+  background: white !important;
+  background-color: white !important;
+}
+
+/* Ensure page containers have white background even if content is transparent */
+#docx-preview-container .docx-wrapper .docx-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: white;
-  /* Natural size - will be scaled to fit viewport */
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Wrapper itself should be transparent (allows page containers to show their white background) */
+#docx-preview-container .docx-wrapper {
+  background: transparent !important;
+}
+
+/* Do NOT force white background on elements inside pages - preserve original colors from docx-preview */
+/* Only fix green backgrounds via JavaScript, not CSS */
+
+/* Exclude separators */
+#docx-preview-container .docx-wrapper .docx-page-separator {
+  background: #666 !important;
+}
+
+/* Highly visible separator line at the bottom of each page */
+#docx-preview-container .docx-wrapper .docx-page-separator {
+  position: absolute;
+  bottom: -30px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #666;
+  border-radius: 2px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
+/* First page - no top margin */
+#docx-preview-container .docx-wrapper .docx-page:first-child {
+  margin-top: 0;
+}
+
+/* Visual page separation - background shows through gaps */
+#docx-preview-container .docx-wrapper > * {
+  position: relative;
+}
+
+/* Add spacing before elements that start a new page */
+#docx-preview-container .docx-wrapper [style*="page-break-before"] {
+  margin-top: 40px !important;
 }
 
 /* Images - preserve aspect ratio */

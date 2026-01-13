@@ -1,0 +1,261 @@
+.audit-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+.audit-modal {
+  background: #fff;
+  width: 90%;
+  max-width: 1400px;
+  max-height: 95vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.audit-header {
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.audit-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.audit-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.audit-export-btn {
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.audit-export-btn:hover {
+  background: #45a049;
+}
+
+.audit-export-excel {
+  background: #2196f3;
+}
+
+.audit-export-excel:hover {
+  background: #1976d2;
+}
+
+.audit-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.audit-close-btn:hover {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.audit-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px;
+  min-height: 0;
+  max-height: calc(95vh - 120px); /* Account for header height */
+}
+
+.audit-loading,
+.audit-error,
+.audit-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: #666;
+}
+
+.audit-error {
+  color: #d32f2f;
+}
+
+.audit-summary {
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: #f5f5f5;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #555;
+}
+
+.audit-summary strong {
+  color: #333;
+}
+
+.audit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.audit-entry {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  background: #fafafa;
+  transition: box-shadow 0.2s;
+}
+
+.audit-entry:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.audit-entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.audit-entry-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.audit-action-badge {
+  background: #1976d2;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.audit-entry-time {
+  font-size: 13px;
+  color: #666;
+}
+
+.audit-entry-actor {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.audit-entry-changes {
+  margin-top: 12px;
+}
+
+.audit-changes-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  width: 100%;
+  /* Remove max-height to allow table to expand fully */
+}
+
+.audit-changes-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  min-width: 500px;
+}
+
+.audit-changes-table thead {
+  background: #f5f5f5;
+}
+
+.audit-changes-table th {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.audit-changes-table td {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #333;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.audit-changes-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.audit-change-key {
+  font-weight: 500;
+  color: #555;
+}
+
+.audit-change-before {
+  color: #d32f2f;
+}
+
+.audit-change-after {
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.audit-change-row {
+  background: #fff3e0;
+}
+
+.audit-entry-meta {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: #888;
+}
+
+.audit-meta-item {
+  display: inline-block;
+}
+

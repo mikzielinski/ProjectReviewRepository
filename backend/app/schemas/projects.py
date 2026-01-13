@@ -12,12 +12,24 @@ class ProjectCreate(BaseModel):
     name: str
     status: Optional[str] = "ACTIVE"
     retention_policy_json: Optional[dict] = None
+    approval_policies_json: Optional[dict] = None
+    escalation_chain_json: Optional[dict] = None
+    compliance_settings_json: Optional[dict] = None
+    raci_matrix_json: Optional[dict] = None
+    enable_4_eyes_principal: Optional[bool] = False
+    required_document_types_json: Optional[list] = None  # List of {document_type_id, document_type_code, document_type_name, update_frequency, document_creator_user_id}
+    invited_users: Optional[list[dict]] = None  # List of {user_id: UUID, role_code: str}
 
 
 class ProjectUpdate(BaseModel):
     name: Optional[str] = None
     status: Optional[str] = None
+    folder_id: Optional[UUID] = None
     retention_policy_json: Optional[dict] = None
+    approval_policies_json: Optional[dict] = None
+    escalation_chain_json: Optional[dict] = None
+    compliance_settings_json: Optional[dict] = None
+    raci_matrix_json: Optional[dict] = None
 
 
 class ProjectRead(BaseModel):
@@ -28,6 +40,9 @@ class ProjectRead(BaseModel):
     name: str
     status: str
     retention_policy_json: Optional[dict] = None
+    approval_policies_json: Optional[dict] = None
+    escalation_chain_json: Optional[dict] = None
+    compliance_settings_json: Optional[dict] = None
     raci_matrix_json: Optional[dict] = None
     created_at: datetime
 

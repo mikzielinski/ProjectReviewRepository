@@ -134,6 +134,10 @@ class Template(Base):
     version = Column(String, default="v1", nullable=False)
     object_key = Column(String, nullable=False)
     file_hash = Column(String, nullable=False)
+    pdf_object_key = Column(String, nullable=True)  # PDF version of the template
+    pdf_hash = Column(String, nullable=True)  # Hash of PDF file
+    checked_out_by = Column(PostgresUUID(as_uuid=True), ForeignKey("users.id"), nullable=True)  # User who has template checked out
+    checked_out_at = Column(DateTime, nullable=True)  # When template was checked out
     status = Column(String, default=TemplateStatus.DRAFT.value, nullable=False)
     mapping_manifest_json = Column(JSONB, nullable=False)
     created_by = Column(PostgresUUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
@@ -167,6 +171,10 @@ class DocumentVersion(Base):
     pkb_snapshot_id = Column(PostgresUUID(as_uuid=True), ForeignKey("pkb_snapshots.id"), nullable=True)
     file_object_key = Column(String, nullable=True)
     file_hash = Column(String, nullable=True)
+    pdf_object_key = Column(String, nullable=True)  # PDF version of the document
+    pdf_hash = Column(String, nullable=True)  # Hash of PDF file
+    checked_out_by = Column(PostgresUUID(as_uuid=True), ForeignKey("users.id"), nullable=True)  # User who has document checked out
+    checked_out_at = Column(DateTime, nullable=True)  # When document was checked out
     created_by = Column(PostgresUUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime, default=utcnow, nullable=False)
     submitted_at = Column(DateTime, nullable=True)
@@ -379,5 +387,27 @@ class AuditLog(Base):
     __table_args__ = (
         Index("ix_audit_project_created", "project_id", "created_at"),
         Index("ix_audit_actor_created", "actor_user_id", "created_at"),
+    )
+
+
+class DocumentType(Base):
+    """Document type definitions for templates."""
+    __tablename__ = "document_types"
+
+    id = Column(PostgresUUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    org_id = Column(PostgresUUID(as_uuid=True), ForeignKey("orgs.id"), nullable=True)  # NULL = global/system type
+    code = Column(String, nullable=False, unique=True, index=True)  # e.g., "PDD", "SDD", "TEST_PLAN"
+    name = Column(String, nullable=False)  # Display name, e.g., "Product Design Document"
+    description = Column(Text, nullable=True)  # Optional description
+    default_file_extension = Column(String, default="docx", nullable=False)  # docx, xlsx, pptx
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_by = Column(PostgresUUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=utcnow, nullable=False)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow, nullable=False)
+
+    creator = relationship("User", foreign_keys=[created_by])
+
+    __table_args__ = (
+        Index("ix_document_type_org_code", "org_id", "code"),
     )
 
