@@ -68,14 +68,14 @@ export default function AuditLogModal({
       .join(' ')
   }
 
-  const formatChanges = (json: any): Array<{key: string, before: string, after: string}> => {
-    if (!json || typeof json !== 'object') return []
-    return Object.entries(json).map(([key, value]) => ({
-      key: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-      before: String(value || 'N/A'),
-      after: ''
-    }))
-  }
+  // const formatChanges = (json: any): Array<{key: string, before: string, after: string}> => {
+  //   if (!json || typeof json !== 'object') return []
+  //   return Object.entries(json).map(([key, value]) => ({
+  //     key: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+  //     before: String(value || 'N/A'),
+  //     after: ''
+  //   }))
+  // }
 
   const getChangeDisplay = (beforeJson: any, afterJson: any, entry: AuditLogEntry): Array<{key: string, before: string, after: string}> => {
     const allKeys = new Set<string>()

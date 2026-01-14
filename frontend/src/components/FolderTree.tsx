@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import api from '../services/api'
-import { useAuth } from '../contexts/AuthContext'
+// import { useAuth } from '../contexts/AuthContext' // Not used currently
 import './FolderTree.css'
 
 interface Project {
@@ -33,7 +33,7 @@ const FolderTree = ({ onProjectClick }: FolderTreeProps) => {
   const [selectedParentFolder, setSelectedParentFolder] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [updating, setUpdating] = useState(false)
-  const [deleting, setDeleting] = useState<string | null>(null)
+  const [_deleting, setDeleting] = useState<string | null>(null)
   const [contextMenu, setContextMenu] = useState<{ type: 'folder' | 'project', id: string, x: number, y: number } | null>(null)
   const navigate = useNavigate()
   const location = useLocation()

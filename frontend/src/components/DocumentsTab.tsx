@@ -3,7 +3,7 @@ import api from '../services/api'
 import './Tabs.css'
 import './ProjectDocumentsTree.css'
 import './TemplateInfoModal.css'
-import AuditLogModal from './AuditLogModal'
+// import AuditLogModal from './AuditLogModal' // Not used currently
 // @ts-ignore - react-doc-viewer may not have types
 import DocViewer, { DocViewerRenderers } from '@cyntler/react-doc-viewer'
 
@@ -26,6 +26,7 @@ interface DocumentVersion {
     id: string
     doc_type: string
     name: string
+    version?: string
     object_key: string
     file_hash: string
   }
@@ -528,10 +529,10 @@ const DocumentsTab = ({ projectId, projectName }: DocumentsTabProps) => {
     }
   }
 
-  const handleEditDocument = (doc: Document) => {
-    setEditingDocument(doc)
-    setViewingDocument(null)
-  }
+  // const handleEditDocument = (doc: Document) => {
+  //   setEditingDocument(doc)
+  //   setViewingDocument(null)
+  // }
 
   const handleUpdateDocument = async (e: React.FormEvent) => {
     e.preventDefault()

@@ -30,6 +30,18 @@ interface DocStyles {
     width_px: number
     height_px: number
   }>
+  detailed_table_styles?: Array<{
+    index: number
+    rows: Array<{
+      cells: Array<{
+        background_color?: string
+      }>
+    }>
+  }>
+  paragraph_formats?: any[]
+  section_properties?: any[]
+  list_styles?: { [key: string]: any }
+  table_styles?: any[]
 }
 
 // Component to display various file formats (XML, images, text, data)
@@ -269,6 +281,8 @@ const FileViewer: React.FC<{ templateId: string; fileFormat: string | null }> = 
 }
 
 // Component for viewing Office documents using react-office-viewer
+// Note: This component is not currently used in Templates.tsx (there's a different OfficeDocumentViewer in DocumentsTab.tsx)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const OfficeDocumentViewer = ({ 
   fileUrl, 
   fileFormat,
@@ -467,7 +481,7 @@ const OfficeDocumentViewer = ({
             const wrapper = container.querySelector('.docx-wrapper') as HTMLElement
             if (wrapper) {
               // Store docStyles reference for later use
-              const stylesData = docStyles
+              const stylesData = docStyles as DocStyles
               // DIAGNOSTICS: Check all elements and their backgrounds
               console.log('=== DIAGNOSTICS: Checking all elements for background colors ===')
               const allElements = wrapper.querySelectorAll('*')
@@ -810,7 +824,7 @@ const OfficeDocumentViewer = ({
                   // Create page containers first, then move elements
                   const pageContainers: HTMLDivElement[] = []
                   
-                  pages.forEach((pageContent, pageIdx) => {
+                  pages.forEach((_pageContent, pageIdx) => {
                     const pageDiv = document.createElement('div')
                     pageDiv.className = 'docx-page'
                     // Force white background with !important via setProperty
@@ -1014,7 +1028,7 @@ const OfficeDocumentViewer = ({
             } else {
               console.error('DOCX wrapper not found after render')
             }
-          }, [docStyles])
+          })
           .catch((err) => {
             console.error('Error rendering DOCX:', err)
             setError(`Failed to render DOCX: ${err.message}`)
@@ -1175,7 +1189,7 @@ const Templates = () => {
   const [availableVersions, setAvailableVersions] = useState<any[]>([]) // List of document versions
   const [templateDocuments, setTemplateDocuments] = useState<any[]>([]) // Documents using this template
   const [selectedDocument, setSelectedDocument] = useState<string | null>(null) // Selected document
-  const [loadingVersions, setLoadingVersions] = useState(false)
+  // const [loadingVersions, setLoadingVersions] = useState(false) // Not used currently
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null)
   const [isExcelModalOpen, setIsExcelModalOpen] = useState(false)
   const [excelModalTemplateId, setExcelModalTemplateId] = useState<string | null>(null)
@@ -1309,10 +1323,10 @@ const Templates = () => {
     return activeVersions[key] || null
   }
 
-  const getTemplateVersions = (docType: string, name: string): Template[] => {
-    return templates.filter(t => t.doc_type === docType && t.name === name)
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-  }
+  // const getTemplateVersions = (docType: string, name: string): Template[] => {
+  //   return templates.filter(t => t.doc_type === docType && t.name === name)
+  //     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+  // }
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -1507,9 +1521,9 @@ const Templates = () => {
     return docTypeMap[template.doc_type] || 'docx'
   }
 
-  const getFileUrl = (template: Template): string => {
-    return `/api/v1/templates/${template.id}/file`
-  }
+  // const getFileUrl = (template: Template): string => {
+  //   return `/api/v1/templates/${template.id}/file`
+  // }
 
   const loadPdfAsBlob = async (templateId: string) => {
     console.log('=== LOADING PDF AS BLOB ===')

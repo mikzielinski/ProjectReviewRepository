@@ -14,7 +14,7 @@ api.interceptors.request.use((config) => {
   if (token) {
     // Ensure headers object exists
     if (!config.headers) {
-      config.headers = {}
+      config.headers = {} as any
     }
     // Set Authorization header, preserving any existing headers
     config.headers.Authorization = `Bearer ${token}`
