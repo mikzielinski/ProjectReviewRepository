@@ -4,17 +4,19 @@ services:
     env: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    dockerCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    dockerCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATABASE_URL
         sync: false
-      - key: MINIO_ENDPOINT
+      - key: S3_ENDPOINT_URL
         sync: false
-      - key: MINIO_ACCESS_KEY
+      - key: S3_ACCESS_KEY
         sync: false
-      - key: MINIO_SECRET_KEY
+      - key: S3_SECRET_KEY
         sync: false
-      - key: JWT_SECRET_KEY
+      - key: S3_BUCKET
+        sync: false
+      - key: JWT_SECRET
         sync: false
       - key: OPENAI_API_KEY
         sync: false

@@ -39,6 +39,7 @@ allowed_origins = [
     "http://127.0.0.1:3000",
     "https://mikzielinski.github.io",
     "https://mikzielinski.github.io/ProjectReviewRepository",
+    "https://projectreviewrepository.onrender.com",
 ]
 
 # Add custom origins from environment if set
