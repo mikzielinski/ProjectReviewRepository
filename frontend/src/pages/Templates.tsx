@@ -282,8 +282,8 @@ const FileViewer: React.FC<{ templateId: string; fileFormat: string | null }> = 
 
 // Component for viewing Office documents using react-office-viewer
 // Note: This component is not currently used in Templates.tsx (there's a different OfficeDocumentViewer in DocumentsTab.tsx)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const OfficeDocumentViewer = ({ 
+// @ts-expect-error - Component is intentionally unused, kept for future reference
+const _OfficeDocumentViewer = ({ 
   fileUrl, 
   fileFormat,
   templateId
@@ -702,8 +702,8 @@ const OfficeDocumentViewer = ({
                   
                   allTables.forEach((table, tableIdx) => {
                     // Match table with detailed_table_styles by index
-                    const tableStyle = stylesData.detailed_table_styles.find((ts: any) => ts.index === tableIdx) || 
-                                      stylesData.detailed_table_styles[tableIdx]
+                    const tableStyle = stylesData.detailed_table_styles?.find((ts: any) => ts.index === tableIdx) || 
+                                      stylesData.detailed_table_styles?.[tableIdx]
                     
                     if (!tableStyle || !tableStyle.rows) {
                       console.log(`   ⚠️ Table ${tableIdx}: No style data available`)

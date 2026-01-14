@@ -61,7 +61,7 @@ const Login = () => {
           <button 
             type="submit" 
             className="login-btn"
-            onClick={(e) => {
+            onClick={() => {
               console.log('Login button clicked')
               // handleSubmit will be called by form onSubmit
             }}
