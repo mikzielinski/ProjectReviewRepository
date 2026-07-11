@@ -19,7 +19,7 @@ from app.models import (
     User,
 )
 from app.schemas.auditor import AuditorAuditEntry, AuditorControlItem, AuditorOverview
-from app.services.project_access import project_ids_for_user
+from app.services.project_access import org_ids_for_user, project_ids_for_user
 
 router = APIRouter(prefix="/auditor", tags=["auditor"])
 
@@ -125,9 +125,10 @@ def auditor_audit_trail(
     projects = {p.id: p for p in db.query(Project).filter(Project.id.in_(project_ids)).all()}
 
     filters = [AuditLog.project_id.in_(project_ids)]
-    if current_user.org_id:
+    user_org_ids = org_ids_for_user(db, current_user.id)
+    if user_org_ids:
         filters.append(
-            (AuditLog.org_id == current_user.org_id) & (AuditLog.project_id.is_(None))
+            (AuditLog.org_id.in_(user_org_ids)) & (AuditLog.project_id.is_(None))
         )
 
     logs = (

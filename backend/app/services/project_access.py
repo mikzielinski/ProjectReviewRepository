@@ -29,6 +29,22 @@ def project_ids_for_user(db: Session, user_id: UUID) -> list[UUID]:
     return [m.project_id for m in _active_memberships(db, user_id)]
 
 
+def org_ids_for_user(db: Session, user_id: UUID) -> list[UUID]:
+    """Distinct org IDs from projects the user can access via active membership."""
+    rows = (
+        db.query(Project.org_id)
+        .join(ProjectMember, Project.id == ProjectMember.project_id)
+        .filter(ProjectMember.user_id == user_id)
+        .filter(
+            (ProjectMember.expires_at.is_(None))
+            | (ProjectMember.expires_at > datetime.now(timezone.utc))
+        )
+        .distinct()
+        .all()
+    )
+    return [row[0] for row in rows]
+
+
 def bootstrap_memberships_from_env(db: Session) -> int:
     """
     Ensure emails listed in PROJECT_ACCESS_BOOTSTRAP_EMAILS have Business Owner

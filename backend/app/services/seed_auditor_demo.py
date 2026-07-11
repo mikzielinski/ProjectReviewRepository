@@ -64,7 +64,7 @@ def seed_auditor_demo_logs(db: Session, min_per_project: int = 3) -> int:
             db.add(
                 AuditLog(
                     id=uuid4(),
-                    org_id=project.org_id or actor.org_id,
+                    org_id=project.org_id,
                     project_id=project.id,
                     actor_user_id=actor.id,
                     action=action,
