@@ -50,16 +50,17 @@ interface AuditEntry {
 
 interface Props {
   projectId: string
+  initialSubTab?: 'controls' | 'schedule' | 'audit'
 }
 
 const STATUSES = ['NOT_STARTED', 'IN_PROGRESS', 'IMPLEMENTED', 'TESTED', 'NON_APPLICABLE']
 
-export default function ComplianceControlsTab({ projectId }: Props) {
+export default function ComplianceControlsTab({ projectId, initialSubTab }: Props) {
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [schedule, setSchedule] = useState<ScheduleItem[]>([])
   const [audit, setAudit] = useState<AuditEntry[]>([])
   const [users, setUsers] = useState<UserOption[]>([])
-  const [subTab, setSubTab] = useState<'controls' | 'schedule' | 'audit'>('controls')
+  const [subTab, setSubTab] = useState<'controls' | 'schedule' | 'audit'>(initialSubTab || 'controls')
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)

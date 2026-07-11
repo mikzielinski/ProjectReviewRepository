@@ -1,29 +1,32 @@
 .auditor-page { padding: 1.5rem; max-width: 1200px; }
 .auditor-error {
   background: #fff3cd; border: 1px solid #ffc107; color: #856404;
-  padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1rem;
+  padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem;
 }
-.auditor-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
-.auditor-header h1 { margin: 0 0 0.25rem; }
-.auditor-header p { color: #666; margin: 0; max-width: 640px; }
+.auditor-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.25rem; }
+.auditor-header h1 { margin: 0 0 0.35rem; font-size: 1.65rem; font-weight: 700; color: #0f172a; }
+.auditor-header p { color: #64748b; margin: 0; max-width: 640px; line-height: 1.5; }
 .read-only-badge {
   background: #e8f4fd; color: #1565c0; font-size: 0.75rem; font-weight: 600;
   padding: 0.35rem 0.75rem; border-radius: 999px; border: 1px solid #bbdefb; white-space: nowrap;
 }
 .auditor-tabs { display: flex; gap: 0.5rem; margin: 1.25rem 0; flex-wrap: wrap; }
 .auditor-tabs button {
-  padding: 0.5rem 1rem; border: 1px solid #ddd; background: #fff; border-radius: 6px; cursor: pointer;
-  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.5rem 1rem; border: 1px solid #e2e8f0; background: #fff; border-radius: 8px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 500; color: #475569;
+  transition: background 0.15s, border-color 0.15s;
 }
-.auditor-tabs button.active { background: #6a1b9a; color: #fff; border-color: #6a1b9a; }
+.auditor-tabs button:hover { background: #f8fafc; border-color: #cbd5e1; }
+.auditor-tabs button.active { background: #7c3aed; color: #fff; border-color: #7c3aed; }
 .tab-badge {
   background: #e74c3c; color: #fff; font-size: 0.7rem; padding: 0.1rem 0.4rem; border-radius: 999px; min-width: 1.2rem; text-align: center;
 }
-.auditor-tabs button.active .tab-badge { background: #fff; color: #6a1b9a; }
-.stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
+.auditor-tabs button.active .tab-badge { background: #fff; color: #7c3aed; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem; }
 .stat-card {
-  background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem;
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem;
   display: flex; flex-direction: column; align-items: center; text-align: center;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 .stat-card.warn { border-left: 4px solid #f39c12; }
 .stat-card.alert { border-left: 4px solid #e74c3c; }

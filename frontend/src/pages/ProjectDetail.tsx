@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import Layout from '../components/Layout'
 import api from '../services/api'
 import './ProjectDetail.css'
@@ -59,13 +59,26 @@ function getActiveComplianceStandards(project: Project): string[] {
 }
 
 type Tab = 'overview' | 'documents' | 'team' | 'tasks' | 'gantt' | 'raci' | 'templates' | 'compliance'
+type ComplianceSubTab = 'controls' | 'schedule' | 'audit'
+
+const VALID_TABS: Tab[] = ['overview', 'documents', 'team', 'tasks', 'gantt', 'raci', 'templates', 'compliance']
+const VALID_SUBTABS: ComplianceSubTab[] = ['controls', 'schedule', 'audit']
 
 const ProjectDetail = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [project, setProject] = useState<Project | null>(null)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<Tab>('overview')
+  const initialTab = searchParams.get('tab')
+  const initialSubTab = searchParams.get('subtab')
+  const [activeTab, setActiveTab] = useState<Tab>(
+    initialTab && VALID_TABS.includes(initialTab as Tab) ? (initialTab as Tab) : 'overview'
+  )
+  const complianceSubTab: ComplianceSubTab | undefined =
+    initialSubTab && VALID_SUBTABS.includes(initialSubTab as ComplianceSubTab)
+      ? (initialSubTab as ComplianceSubTab)
+      : undefined
   const [folderName, setFolderName] = useState<string | null>(null)
 
   useEffect(() => {
@@ -462,7 +475,7 @@ const ProjectDetail = () => {
           {activeTab === 'raci' && <RACITab projectId={id!} onTeamUpdate={loadProject} />}
           {activeTab === 'templates' && <TemplatesTab projectId={id!} />}
           {activeTab === 'compliance' && showCompliance && (
-            <ComplianceControlsTab projectId={id!} />
+            <ComplianceControlsTab projectId={id!} initialSubTab={complianceSubTab} />
           )}
         </div>
       </div>

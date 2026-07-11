@@ -1,11 +1,23 @@
 .compliance-controls-tab { padding: 0.5rem 0; }
 .cc-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; }
-.cc-subtabs { display: flex; gap: 0.35rem; }
-.cc-subtabs button { padding: 0.4rem 0.75rem; border: 1px solid #ddd; background: #fff; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
-.cc-subtabs button.active { background: #8e44ad; color: #fff; border-color: #8e44ad; }
+.cc-subtabs { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+.cc-subtabs button {
+  padding: 0.45rem 0.85rem; border: 1px solid #e2e8f0; background: #fff; border-radius: 8px;
+  cursor: pointer; font-size: 0.85rem; font-weight: 500; color: #475569;
+  transition: background 0.15s, border-color 0.15s;
+}
+.cc-subtabs button:hover { background: #f8fafc; border-color: #cbd5e1; }
+.cc-subtabs button.active { background: #7c3aed; color: #fff; border-color: #7c3aed; }
 .cc-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-.cc-table th, .cc-table td { border-bottom: 1px solid #eee; padding: 0.5rem; text-align: left; vertical-align: top; }
-.cc-table th { background: #f8f9fa; }
+.cc-table th, .cc-table td { border-bottom: 1px solid #f1f5f9; padding: 0.6rem 0.5rem; text-align: left; vertical-align: top; }
+.cc-table th { background: #f8fafc; font-weight: 600; color: #334155; }
+.muted { color: #94a3b8; font-size: 0.8rem; }
+.btn-primary {
+  padding: 0.45rem 0.9rem; border: 0; background: #7c3aed; color: #fff;
+  border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 500;
+}
+.btn-primary:hover { background: #6d28d9; }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 .cc-table select { max-width: 140px; font-size: 0.8rem; }
 .cc-table tr.overdue { background: #fff3e0; }
 .cc-toolbar-actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
