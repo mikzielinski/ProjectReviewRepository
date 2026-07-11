@@ -458,8 +458,13 @@ class ComplianceFramework(Base):
     version = Column(String(32), nullable=True)
     description = Column(Text, nullable=True)
     source_url = Column(String, nullable=True)
+    owner_user_id = Column(PostgresUUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
+    owner_email = Column(String, nullable=True)
+    is_system = Column(Boolean, default=True, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=utcnow, nullable=False)
+
+    owner = relationship("User", foreign_keys=[owner_user_id])
 
 
 class ComplianceControl(Base):

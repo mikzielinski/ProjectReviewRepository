@@ -30,3 +30,17 @@
 .controls-table th { background: #f8f9fa; font-weight: 600; }
 .admin-error { color: #c0392b; }
 .empty-cell { text-align: center; color: #888; padding: 1.5rem !important; }
+.admin-btn {
+  padding: 0.45rem 0.9rem; border: 1px solid #ddd; background: #fff; border-radius: 6px; cursor: pointer; font-size: 0.85rem;
+}
+.admin-btn.primary { background: #1a5276; color: #fff; border-color: #1a5276; }
+.admin-btn.primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.admin-btn.small { padding: 0.25rem 0.5rem; font-size: 0.8rem; }
+.admin-btn.danger { color: #c0392b; border-color: #e8c4c0; }
+.admin-form { padding: 1rem; margin: 1rem 0; background: #f9fafb; border: 1px solid #e5e7eb; }
+.admin-form h3 { margin: 0 0 0.75rem; font-size: 1rem; }
+.admin-form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem; }
+.admin-form label { display: block; font-size: 0.8rem; margin-bottom: 0.25rem; color: #555; }
+.admin-form input, .admin-form textarea, .admin-form select {
+  width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem; box-sizing: border-box;
+}

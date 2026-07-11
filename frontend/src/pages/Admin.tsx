@@ -43,6 +43,8 @@ interface Framework {
   name: string
   version?: string
   description?: string
+  owner_email?: string
+  is_system: boolean
   control_count: number
 }
 
@@ -57,23 +59,53 @@ interface Control {
   sub_controls?: Control[]
 }
 
+interface Permissions {
+  is_admin: boolean
+  owned_framework_codes: string[]
+  can_manage_frameworks: boolean
+}
+
+interface FrameworkForm {
+  code: string
+  name: string
+  version: string
+  description: string
+  owner_email: string
+}
+
+const EMPTY_FW_FORM: FrameworkForm = {
+  code: '',
+  name: '',
+  version: '',
+  description: '',
+  owner_email: '',
+}
+
 export default function Admin() {
-  const [tab, setTab] = useState<'types' | 'controls'>('types')
+  const [tab, setTab] = useState<'types' | 'controls' | 'frameworks'>('types')
+  const [permissions, setPermissions] = useState<Permissions | null>(null)
   const [projectTypes, setProjectTypes] = useState<ProjectType[]>([])
   const [frameworks, setFrameworks] = useState<Framework[]>([])
   const [controls, setControls] = useState<Control[]>([])
   const [frameworkFilter, setFrameworkFilter] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [fwForm, setFwForm] = useState<FrameworkForm>(EMPTY_FW_FORM)
+  const [creatingFw, setCreatingFw] = useState(false)
+  const [showFwForm, setShowFwForm] = useState(false)
+
+  const isAdmin = permissions?.is_admin ?? false
 
   const load = async () => {
     setLoading(true)
     setError(null)
     try {
-      const [typesRes, fwRes] = await Promise.all([
+      const [permRes, typesRes, fwRes] = await Promise.all([
+        api.get('/admin/permissions'),
         api.get('/admin/project-types'),
         api.get('/admin/frameworks'),
       ])
+      setPermissions(permRes.data)
       setProjectTypes(typesRes.data || [])
       setFrameworks(fwRes.data || [])
     } catch (err) {
@@ -94,6 +126,41 @@ export default function Admin() {
     }
   }
 
+  const createFramework = async () => {
+    if (!fwForm.code.trim() || !fwForm.name.trim()) return
+    setCreatingFw(true)
+    setError(null)
+    try {
+      await api.post('/admin/frameworks', {
+        code: fwForm.code.trim(),
+        name: fwForm.name.trim(),
+        version: fwForm.version || null,
+        description: fwForm.description || null,
+        owner_email: fwForm.owner_email || null,
+      })
+      setFwForm(EMPTY_FW_FORM)
+      setShowFwForm(false)
+      const fwRes = await api.get('/admin/frameworks')
+      setFrameworks(fwRes.data || [])
+    } catch (err) {
+      setError(formatAdminError(err, 'create framework'))
+    } finally {
+      setCreatingFw(false)
+    }
+  }
+
+  const deleteFramework = async (fw: Framework) => {
+    if (!window.confirm(`Deactivate framework ${fw.code} — ${fw.name}?`)) return
+    setError(null)
+    try {
+      await api.delete(`/admin/frameworks/${fw.code}`)
+      const fwRes = await api.get('/admin/frameworks')
+      setFrameworks(fwRes.data || [])
+    } catch (err) {
+      setError(formatAdminError(err, 'delete framework'))
+    }
+  }
+
   useEffect(() => { load() }, [])
   useEffect(() => {
     if (tab === 'controls') loadControls(frameworkFilter || undefined)
@@ -105,7 +172,7 @@ export default function Admin() {
         <header className="admin-header">
           <div>
             <h1>Admin Panel</h1>
-            <p>Project types (dev vs compliance) and regulatory controls library</p>
+            <p>Project types, framework standards, and regulatory controls library</p>
           </div>
         </header>
 
@@ -113,6 +180,11 @@ export default function Admin() {
           <button className={tab === 'types' ? 'active' : ''} onClick={() => setTab('types')}>
             Project types
           </button>
+          {isAdmin && (
+            <button className={tab === 'frameworks' ? 'active' : ''} onClick={() => setTab('frameworks')}>
+              Framework standards
+            </button>
+          )}
           <button className={tab === 'controls' ? 'active' : ''} onClick={() => setTab('controls')}>
             Controls library
           </button>
@@ -158,6 +230,102 @@ export default function Admin() {
               ))}
             </div>
             )}
+          </section>
+        ) : tab === 'frameworks' ? (
+          <section className="card admin-section">
+            <div className="controls-toolbar">
+              <h2>Framework standards</h2>
+              <button className="admin-btn primary" onClick={() => setShowFwForm(!showFwForm)}>
+                {showFwForm ? 'Cancel' : 'Add framework'}
+              </button>
+            </div>
+            <p className="hint">
+              Create new compliance standards (ISO, SOC, custom). Assign an owner email to delegate control management.
+            </p>
+
+            {showFwForm && (
+              <div className="admin-form card">
+                <h3>New framework standard</h3>
+                <div className="admin-form-grid">
+                  <div>
+                    <label>Code *</label>
+                    <input
+                      placeholder="e.g. ISO27017"
+                      value={fwForm.code}
+                      onChange={(e) => setFwForm({ ...fwForm, code: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label>Name *</label>
+                    <input
+                      placeholder="e.g. ISO/IEC 27017"
+                      value={fwForm.name}
+                      onChange={(e) => setFwForm({ ...fwForm, name: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label>Version</label>
+                    <input
+                      placeholder="e.g. 2015"
+                      value={fwForm.version}
+                      onChange={(e) => setFwForm({ ...fwForm, version: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label>Owner email</label>
+                    <input
+                      placeholder="framework.owner@company.com"
+                      value={fwForm.owner_email}
+                      onChange={(e) => setFwForm({ ...fwForm, owner_email: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <label>Description</label>
+                <textarea
+                  rows={2}
+                  value={fwForm.description}
+                  onChange={(e) => setFwForm({ ...fwForm, description: e.target.value })}
+                />
+                <button className="admin-btn primary" onClick={createFramework} disabled={creatingFw}>
+                  {creatingFw ? 'Creating…' : 'Create framework'}
+                </button>
+              </div>
+            )}
+
+            <table className="controls-table">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Name</th>
+                  <th>Version</th>
+                  <th>Owner</th>
+                  <th>Type</th>
+                  <th>Controls</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {frameworks.length === 0 ? (
+                  <tr><td colSpan={7} className="empty-cell">No frameworks defined.</td></tr>
+                ) : frameworks.map((fw) => (
+                  <tr key={fw.id}>
+                    <td><code>{fw.code}</code></td>
+                    <td>{fw.name}</td>
+                    <td>{fw.version || '—'}</td>
+                    <td>{fw.owner_email || '—'}</td>
+                    <td>{fw.is_system ? 'System' : 'Custom'}</td>
+                    <td>{fw.control_count}</td>
+                    <td>
+                      {!fw.is_system && (
+                        <button className="admin-btn small danger" onClick={() => deleteFramework(fw)}>
+                          Deactivate
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </section>
         ) : (
           <section className="card admin-section">

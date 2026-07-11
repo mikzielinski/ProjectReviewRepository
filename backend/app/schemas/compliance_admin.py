@@ -53,11 +53,65 @@ class ComplianceFrameworkRead(BaseModel):
     version: Optional[str] = None
     description: Optional[str] = None
     source_url: Optional[str] = None
+    owner_user_id: Optional[UUID] = None
+    owner_email: Optional[str] = None
+    is_system: bool = True
     is_active: bool
     control_count: int = 0
 
     class Config:
         from_attributes = True
+
+
+class ComplianceFrameworkCreate(BaseModel):
+    code: str
+    name: str
+    version: Optional[str] = None
+    description: Optional[str] = None
+    source_url: Optional[str] = None
+    owner_email: Optional[str] = None
+
+
+class ComplianceFrameworkUpdate(BaseModel):
+    name: Optional[str] = None
+    version: Optional[str] = None
+    description: Optional[str] = None
+    source_url: Optional[str] = None
+    owner_email: Optional[str] = None
+    is_active: Optional[bool] = None
+
+
+class ComplianceControlCreate(BaseModel):
+    control_ref: str
+    title: str
+    description: Optional[str] = None
+    domain: Optional[str] = None
+    control_type: Optional[str] = None
+    testing_frequency_days: Optional[int] = None
+    evidence_requirements_json: Optional[list] = None
+    mapped_document_types_json: Optional[list] = None
+    parent_control_id: Optional[UUID] = None
+    sort_order: Optional[int] = None
+
+
+class ComplianceControlUpdate(BaseModel):
+    control_ref: Optional[str] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
+    domain: Optional[str] = None
+    control_type: Optional[str] = None
+    testing_frequency_days: Optional[int] = None
+    evidence_requirements_json: Optional[list] = None
+    mapped_document_types_json: Optional[list] = None
+    parent_control_id: Optional[UUID] = None
+    sort_order: Optional[int] = None
+    is_active: Optional[bool] = None
+
+
+class AdminPermissionsRead(BaseModel):
+    is_admin: bool
+    owned_framework_codes: list[str] = []
+    can_manage_frameworks: bool = False
 
 
 class ComplianceControlRead(BaseModel):

@@ -1,0 +1,33 @@
+.framework-owner-page { padding: 1.5rem; max-width: 1100px; }
+.fo-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
+.fo-header h1 { margin: 0 0 0.25rem; }
+.fo-header p { color: #666; margin: 0; }
+.fo-select { padding: 0.5rem 0.75rem; border: 1px solid #ddd; border-radius: 6px; min-width: 280px; }
+.fo-section { padding: 1.25rem; margin-bottom: 1rem; }
+.fo-section h2 { margin: 0 0 1rem; font-size: 1.1rem; }
+.fo-meta-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
+.fo-meta-grid label { display: block; font-size: 0.75rem; color: #888; margin-bottom: 0.15rem; }
+.fo-label { display: block; font-size: 0.85rem; margin-bottom: 0.35rem; }
+.fo-textarea, .fo-form input, .fo-form select, .fo-form textarea {
+  width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem; box-sizing: border-box;
+}
+.fo-btn {
+  padding: 0.45rem 0.9rem; border: 1px solid #ddd; background: #fff; border-radius: 6px; cursor: pointer; font-size: 0.85rem;
+}
+.fo-btn.primary { background: #1a5276; color: #fff; border-color: #1a5276; }
+.fo-btn.primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.fo-btn.small { padding: 0.25rem 0.5rem; font-size: 0.8rem; }
+.fo-btn.danger { color: #c0392b; border-color: #e8c4c0; }
+.fo-btn.danger:hover { background: #fdf0ef; }
+.fo-controls-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.fo-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.fo-table th, .fo-table td { border-bottom: 1px solid #eee; padding: 0.5rem; text-align: left; vertical-align: top; }
+.fo-table th { background: #f8f9fa; font-weight: 600; }
+.fo-actions { display: flex; gap: 0.35rem; }
+.fo-empty { text-align: center; color: #888; padding: 1.5rem !important; }
+.fo-error { color: #c0392b; margin-bottom: 1rem; }
+.fo-form { padding: 1rem; margin-bottom: 1rem; background: #f9fafb; border: 1px solid #e5e7eb; }
+.fo-form h3 { margin: 0 0 0.75rem; font-size: 1rem; }
+.fo-form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem; }
+.fo-form label { display: block; font-size: 0.8rem; margin-bottom: 0.25rem; color: #555; }
+.fo-form-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }

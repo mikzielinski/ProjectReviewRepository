@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 
 from sqlalchemy.orm import Session
 
@@ -10,6 +11,23 @@ from app.data.controls_library import CONTROLS, FRAMEWORKS, PROJECT_TYPE_DEFINIT
 from app.models import ComplianceControl, ComplianceFramework, ProjectTypeDefinition, User
 
 logger = logging.getLogger(__name__)
+
+
+def _framework_owner_email(code: str) -> str | None:
+    env_key = f"FRAMEWORK_OWNER_{code.upper()}"
+    value = os.getenv(env_key)
+    if value:
+        return value.strip().lower()
+    if code.upper() == "ISO27001":
+        return os.getenv("FRAMEWORK_OWNER_ISO27001", "mikzielinski@gmail.com").strip().lower()
+    return None
+
+
+def _resolve_owner_user_id(db: Session, owner_email: str | None):
+    if not owner_email:
+        return None
+    user = db.query(User).filter(User.email == owner_email).first()
+    return user.id if user else None
 
 
 def _doc_list(codes: list[str]) -> list[dict[str, str]]:
@@ -52,11 +70,21 @@ def seed_compliance_library(db: Session) -> tuple[int, int]:
 
     for spec in FRAMEWORKS:
         fw = db.query(ComplianceFramework).filter(ComplianceFramework.code == spec["code"]).first()
+        owner_email = _framework_owner_email(spec["code"])
         if not fw:
-            fw = ComplianceFramework(**spec)
+            fw = ComplianceFramework(
+                **spec,
+                is_system=True,
+                owner_email=owner_email,
+                owner_user_id=_resolve_owner_user_id(db, owner_email),
+            )
             db.add(fw)
             db.flush()
             fw_added += 1
+        else:
+            if owner_email and not fw.owner_email:
+                fw.owner_email = owner_email
+                fw.owner_user_id = _resolve_owner_user_id(db, owner_email)
         ref_to_id[spec["code"]] = {}
 
         for idx, ctrl in enumerate(CONTROLS.get(spec["code"], [])):

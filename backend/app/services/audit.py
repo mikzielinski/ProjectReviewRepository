@@ -38,6 +38,12 @@ class AuditAction:
     TASK_COMPLETE = "TASK_COMPLETE"
     CONTROL_SYNC = "CONTROL_SYNC"
     CONTROL_TEST = "CONTROL_TEST"
+    FRAMEWORK_CREATE = "FRAMEWORK_CREATE"
+    FRAMEWORK_UPDATE = "FRAMEWORK_UPDATE"
+    FRAMEWORK_DELETE = "FRAMEWORK_DELETE"
+    CONTROL_CREATE = "CONTROL_CREATE"
+    CONTROL_UPDATE = "CONTROL_UPDATE"
+    CONTROL_DELETE = "CONTROL_DELETE"
     EVIDENCE_UPLOAD = "EVIDENCE_UPLOAD"
     LOGIN = "LOGIN"
     LOGOUT = "LOGOUT"
@@ -71,6 +77,12 @@ def action_label(action: str) -> str:
         AuditAction.TASK_COMPLETE: "Task completed",
         AuditAction.CONTROL_SYNC: "Controls synchronized",
         AuditAction.CONTROL_TEST: "Control tested",
+        AuditAction.FRAMEWORK_CREATE: "Framework created",
+        AuditAction.FRAMEWORK_UPDATE: "Framework updated",
+        AuditAction.FRAMEWORK_DELETE: "Framework deleted",
+        AuditAction.CONTROL_CREATE: "Control created",
+        AuditAction.CONTROL_UPDATE: "Control updated",
+        AuditAction.CONTROL_DELETE: "Control deleted",
         AuditAction.EVIDENCE_UPLOAD: "Evidence uploaded",
         AuditAction.LOGIN: "Login",
         AuditAction.LOGOUT: "Logout",

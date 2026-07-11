@@ -1,5 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import api from '../services/api'
 import FolderTree from './FolderTree'
 import './Layout.css'
 
@@ -11,6 +13,17 @@ const Layout = ({ children }: LayoutProps) => {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const [showFrameworkOwner, setShowFrameworkOwner] = useState(false)
+
+  useEffect(() => {
+    if (!user) {
+      setShowFrameworkOwner(false)
+      return
+    }
+    api.get('/admin/permissions')
+      .then((res) => setShowFrameworkOwner(res.data?.can_manage_frameworks === true))
+      .catch(() => setShowFrameworkOwner(false))
+  }, [user?.id])
 
   const handleLogout = () => {
     logout()
@@ -34,7 +47,7 @@ const Layout = ({ children }: LayoutProps) => {
           </Link>
           <Link 
             to="/projects" 
-            className={`nav-item ${isActive('/projects') && !location.pathname.startsWith('/compliance') && !location.pathname.startsWith('/admin') && !location.pathname.startsWith('/auditor') && !location.pathname.match(/^\/projects\/[^/]+$/) ? 'active' : ''}`}
+            className={`nav-item ${isActive('/projects') && !location.pathname.startsWith('/compliance') && !location.pathname.startsWith('/admin') && !location.pathname.startsWith('/auditor') && !location.pathname.startsWith('/framework-owner') && !location.pathname.match(/^\/projects\/[^/]+$/) ? 'active' : ''}`}
           >
             💻 Dev Projects
           </Link>
@@ -56,6 +69,14 @@ const Layout = ({ children }: LayoutProps) => {
           >
             ⚙️ Admin
           </Link>
+          {showFrameworkOwner && (
+            <Link
+              to="/framework-owner"
+              className={`nav-item ${isActive('/framework-owner') ? 'active' : ''}`}
+            >
+              📋 Framework Owner
+            </Link>
+          )}
           <Link 
             to="/auditor" 
             className={`nav-item ${isActive('/auditor') ? 'active' : ''}`}

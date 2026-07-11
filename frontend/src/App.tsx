@@ -8,6 +8,7 @@ import Templates from './pages/Templates'
 import Admin from './pages/Admin'
 import Auditor from './pages/Auditor'
 import ComplianceProjects from './pages/ComplianceProjects'
+import FrameworkOwner from './pages/FrameworkOwner'
 import ProtectedRoute from './components/ProtectedRoute'
 
 const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '') || undefined
@@ -55,6 +56,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Admin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/framework-owner"
+            element={
+              <ProtectedRoute>
+                <FrameworkOwner />
               </ProtectedRoute>
             }
           />
