@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import Login from './pages/Login'
 import ItDashboard from './pages/ItDashboard'
@@ -9,6 +9,7 @@ import Admin from './pages/Admin'
 import Auditor from './pages/Auditor'
 import ComplianceProjects from './pages/ComplianceProjects'
 import FrameworkOwner from './pages/FrameworkOwner'
+import HomePage from './pages/HomePage'
 import ProtectedRoute from './components/ProtectedRoute'
 
 const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '') || undefined
@@ -83,7 +84,8 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<HomePage />} />
+          <Route path="/home" element={<HomePage />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

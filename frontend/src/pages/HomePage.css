@@ -1,0 +1,555 @@
+/* ── Landing shell (logged out) ── */
+.home-landing-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f0f4f8;
+}
+
+.home-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  background: #1a5276;
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(26, 82, 118, 0.25);
+}
+
+.home-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+}
+
+.home-topbar-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #85c1e9;
+}
+
+.home-topbar-login {
+  padding: 0.45rem 1.25rem;
+  background: #fff;
+  color: #1a5276;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.home-topbar-login:hover {
+  background: #eaf2f8;
+  transform: translateY(-1px);
+}
+
+.home-footer {
+  margin-top: auto;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  color: #7f8c8d;
+  font-size: 0.82rem;
+  border-top: 1px solid #dce4ec;
+  background: #fff;
+}
+
+/* ── Loading ── */
+.home-loading {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f4f8;
+}
+
+.home-loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #dce4ec;
+  border-top-color: #1a5276;
+  border-radius: 50%;
+  animation: home-spin 0.7s linear infinite;
+}
+
+@keyframes home-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Page layout ── */
+.home-page {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.home-landing-shell .home-page {
+  max-width: none;
+}
+
+/* ── Hero ── */
+.home-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  margin-bottom: 2rem;
+}
+
+.home-landing-shell .home-hero {
+  border-radius: 0;
+  margin-bottom: 0;
+}
+
+.home-hero-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, #1a5276 0%, #154360 55%, #0e3d5c 100%);
+  z-index: 0;
+}
+
+.home-hero-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 85% 15%, rgba(52, 152, 219, 0.18) 0%, transparent 45%),
+    radial-gradient(circle at 10% 80%, rgba(133, 193, 233, 0.12) 0%, transparent 40%);
+}
+
+.home-hero-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent 80%);
+}
+
+.home-hero-inner {
+  position: relative;
+  z-index: 1;
+  padding: 3rem 2.5rem 3.5rem;
+  color: #fff;
+}
+
+.home-landing-shell .home-hero-inner {
+  padding: 4rem 2rem 4.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.home-eyebrow {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #85c1e9;
+  margin-bottom: 0.85rem;
+}
+
+.home-hero-title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 800;
+  line-height: 1.15;
+  margin: 0 0 1rem;
+  letter-spacing: -0.02em;
+}
+
+.home-hero-sub {
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.82);
+  max-width: 620px;
+  margin: 0;
+}
+
+/* ── Welcome & stats (logged in) ── */
+.home-welcome-block {
+  margin-top: 2rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.home-welcome-text {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 1.25rem;
+}
+
+.home-welcome-text strong {
+  color: #fff;
+}
+
+.home-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.home-stats--loading {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.home-stat {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  padding: 0.85rem 1.35rem;
+  min-width: 120px;
+}
+
+.home-stat-value {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #fff;
+}
+
+.home-stat-label {
+  display: block;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.65);
+  margin-top: 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ── Hero actions (logged out) ── */
+.home-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.home-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1.4rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+
+.home-btn--primary {
+  background: #fff;
+  color: #1a5276;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+}
+
+.home-btn--primary:hover {
+  background: #eaf2f8;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.home-btn--ghost {
+  background: transparent;
+  color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+}
+
+.home-btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+.home-btn--lg {
+  padding: 0.8rem 2rem;
+  font-size: 1rem;
+}
+
+/* ── Framework badges ── */
+.home-frameworks {
+  padding: 1.75rem 2rem;
+  background: #fff;
+  border-bottom: 1px solid #e8edf2;
+}
+
+.home-landing-shell .home-frameworks {
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+  background: transparent;
+  border-bottom: none;
+  padding: 2rem 2rem 0;
+}
+
+.layout .home-frameworks {
+  background: transparent;
+  padding: 0 0 1.5rem;
+  border-bottom: none;
+}
+
+.home-frameworks-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #7f8c8d;
+  margin: 0 0 0.85rem;
+}
+
+.home-framework-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.home-framework-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.75rem 0.35rem 0.4rem;
+  background: #fff;
+  border: 1px solid #dce4ec;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  color: #2c3e50;
+  box-shadow: 0 1px 3px rgba(26, 82, 118, 0.06);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.home-framework-badge:hover {
+  border-color: #1a5276;
+  box-shadow: 0 2px 8px rgba(26, 82, 118, 0.12);
+}
+
+.home-framework-abbr {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 0.3rem;
+  background: #1a5276;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.home-framework-name {
+  font-weight: 600;
+  padding-right: 0.25rem;
+}
+
+/* ── Sections ── */
+.home-section {
+  padding: 2.5rem 0;
+}
+
+.home-landing-shell .home-section {
+  padding: 2.5rem 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.home-section--features {
+  padding-bottom: 3rem;
+}
+
+.home-section-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #1a252f;
+  margin: 0 0 0.4rem;
+  letter-spacing: -0.02em;
+}
+
+.home-section-sub {
+  color: #64748b;
+  font-size: 0.95rem;
+  margin: 0 0 1.75rem;
+  line-height: 1.5;
+}
+
+/* ── Path cards ── */
+.home-paths {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.home-path-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.75rem;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  box-shadow: 0 2px 8px rgba(26, 82, 118, 0.06);
+}
+
+.home-path-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(26, 82, 118, 0.12);
+}
+
+.home-path-card--dev:hover {
+  border-color: #3498db;
+}
+
+.home-path-card--compliance:hover {
+  border-color: #1a5276;
+}
+
+.home-path-icon {
+  font-size: 2rem;
+  margin-bottom: 0.85rem;
+  line-height: 1;
+}
+
+.home-path-card h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1a252f;
+  margin: 0 0 0.6rem;
+}
+
+.home-path-card p {
+  font-size: 0.9rem;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0 0 1.25rem;
+  flex: 1;
+}
+
+.home-path-cta {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1a5276;
+}
+
+.home-path-card--dev .home-path-cta {
+  color: #2471a3;
+}
+
+/* ── Feature cards ── */
+.home-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1.15rem;
+}
+
+.home-feature-card {
+  background: #fff;
+  border: 1px solid #e8edf2;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: box-shadow 0.2s;
+}
+
+.home-feature-card:hover {
+  box-shadow: 0 6px 20px rgba(26, 82, 118, 0.08);
+}
+
+.home-feature-icon {
+  font-size: 1.6rem;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.home-feature-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a252f;
+  margin: 0 0 0.5rem;
+}
+
+.home-feature-card p {
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── CTA banner (logged out) ── */
+.home-cta-banner {
+  background: linear-gradient(135deg, #1a5276, #154360);
+  padding: 3rem 2rem;
+  margin-top: 1rem;
+}
+
+.home-cta-inner {
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+  color: #fff;
+}
+
+.home-cta-inner h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem;
+}
+
+.home-cta-inner p {
+  color: rgba(255, 255, 255, 0.78);
+  margin: 0 0 1.5rem;
+  font-size: 0.95rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .home-hero-inner {
+    padding: 2.25rem 1.25rem 2.75rem;
+  }
+
+  .home-landing-shell .home-hero-inner {
+    padding: 2.5rem 1.25rem 3rem;
+  }
+
+  .home-topbar {
+    padding: 0.85rem 1.25rem;
+  }
+
+  .home-landing-shell .home-section {
+    padding: 2rem 1.25rem;
+  }
+
+  .home-stats {
+    flex-direction: column;
+  }
+
+  .home-stat {
+    width: 100%;
+  }
+
+  .home-hero-actions {
+    flex-direction: column;
+  }
+
+  .home-btn {
+    width: 100%;
+  }
+}
