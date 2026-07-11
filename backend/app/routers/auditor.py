@@ -1,10 +1,13 @@
 """Read-only auditor portal: cross-project audit trail, controls, and compliance gaps."""
 
+import csv
+import io
 from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
+from fastapi.responses import Response
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
@@ -245,3 +248,56 @@ def auditor_gaps(
     current_user=Depends(get_current_active_user),
 ):
     return [c for c in _list_controls(db, current_user.id, project_id) if c.gap_reason]
+
+
+def _controls_to_report_rows(controls: list[AuditorControlItem]) -> list[dict]:
+    return [
+        {
+            "project_key": c.project_key or "",
+            "project_name": c.project_name or "",
+            "control_ref": c.control_ref,
+            "control_title": c.control_title,
+            "framework_code": c.framework_code or "",
+            "domain": c.domain or "",
+            "status": c.status,
+            "control_owner": c.control_owner_name or "",
+            "assignee": c.assignee_name or "",
+            "next_review_at": c.next_review_at.isoformat() if c.next_review_at else "",
+            "last_tested_at": c.last_tested_at.isoformat() if c.last_tested_at else "",
+            "is_overdue": "yes" if c.is_overdue else "no",
+            "gap_reason": c.gap_reason or "",
+        }
+        for c in controls
+    ]
+
+
+@router.get("/report")
+def auditor_report(
+    project_id: Optional[UUID] = None,
+    format: str = Query("csv", pattern="^(csv|json)$"),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_active_user),
+):
+    """Export all accessible controls as CSV or JSON report."""
+    controls = _list_controls(db, current_user.id, project_id)
+    rows = _controls_to_report_rows(controls)
+
+    if format == "json":
+        return {"generated_at": datetime.now(timezone.utc).isoformat(), "count": len(rows), "controls": rows}
+
+    output = io.StringIO()
+    fieldnames = [
+        "project_key", "project_name", "control_ref", "control_title", "framework_code",
+        "domain", "status", "control_owner", "assignee", "next_review_at",
+        "last_tested_at", "is_overdue", "gap_reason",
+    ]
+    writer = csv.DictWriter(output, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(rows)
+
+    filename = f"auditor-report-{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"
+    return Response(
+        content=output.getvalue(),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

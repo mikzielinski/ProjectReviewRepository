@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import api from '../services/api'
+import ControlDetailPanel from './ControlDetailPanel'
 import './ComplianceControlsTab.css'
 
 interface UserOption {
@@ -61,6 +62,8 @@ export default function ComplianceControlsTab({ projectId }: Props) {
   const [subTab, setSubTab] = useState<'controls' | 'schedule' | 'audit'>('controls')
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [exporting, setExporting] = useState(false)
 
   const load = async () => {
     setLoading(true)
@@ -98,6 +101,26 @@ export default function ComplianceControlsTab({ projectId }: Props) {
     await load()
   }
 
+  const exportReport = async () => {
+    setExporting(true)
+    try {
+      const res = await api.get(`/projects/${projectId}/controls/report`, {
+        params: { format: 'csv' },
+        responseType: 'blob',
+      })
+      const url = URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }))
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `controls-report-${new Date().toISOString().split('T')[0]}.csv`
+      link.click()
+      URL.revokeObjectURL(url)
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  const openDetail = (id: string) => setSelectedId(id)
+
   if (loading) return <p>Ładowanie kontrolek…</p>
 
   return (
@@ -108,9 +131,16 @@ export default function ComplianceControlsTab({ projectId }: Props) {
           <button className={subTab === 'schedule' ? 'active' : ''} onClick={() => setSubTab('schedule')}>Harmonogram</button>
           <button className={subTab === 'audit' ? 'active' : ''} onClick={() => setSubTab('audit')}>Audit trail</button>
         </div>
-        <button className="btn-primary" onClick={syncControls} disabled={syncing}>
-          {syncing ? 'Synchronizacja…' : '↻ Sync kontrolek z frameworków'}
-        </button>
+        <div className="cc-toolbar-actions">
+          {assignments.length > 0 && (
+            <button className="btn-export" onClick={exportReport} disabled={exporting}>
+              {exporting ? 'Eksport…' : 'Eksportuj raport'}
+            </button>
+          )}
+          <button className="btn-primary" onClick={syncControls} disabled={syncing}>
+            {syncing ? 'Synchronizacja…' : '↻ Sync kontrolek z frameworków'}
+          </button>
+        </div>
       </div>
 
       {subTab === 'controls' && (
@@ -133,14 +163,14 @@ export default function ComplianceControlsTab({ projectId }: Props) {
             </thead>
             <tbody>
               {assignments.map((a) => (
-                <tr key={a.id}>
+                <tr key={a.id} className="cc-row-clickable" onClick={() => openDetail(a.id)}>
                   <td><code>{a.control_ref}</code></td>
                   <td>
                     <strong>{a.control_title}</strong>
                     {a.domain && <div className="muted">{a.domain}</div>}
                   </td>
                   <td>{a.framework_code}</td>
-                  <td>
+                  <td onClick={(e) => e.stopPropagation()}>
                     <select
                       value={a.control_owner_user_id || ''}
                       onChange={(e) => updateAssignment(a.id, { control_owner_user_id: e.target.value || undefined })}
@@ -151,7 +181,7 @@ export default function ComplianceControlsTab({ projectId }: Props) {
                       ))}
                     </select>
                   </td>
-                  <td>
+                  <td onClick={(e) => e.stopPropagation()}>
                     <select
                       value={a.assignee_user_id || ''}
                       onChange={(e) => updateAssignment(a.id, { assignee_user_id: e.target.value || undefined })}
@@ -162,7 +192,7 @@ export default function ComplianceControlsTab({ projectId }: Props) {
                       ))}
                     </select>
                   </td>
-                  <td>
+                  <td onClick={(e) => e.stopPropagation()}>
                     <select
                       value={a.status}
                       onChange={(e) => updateAssignment(a.id, { status: e.target.value })}
@@ -194,7 +224,11 @@ export default function ComplianceControlsTab({ projectId }: Props) {
           </thead>
           <tbody>
             {schedule.map((s) => (
-              <tr key={s.assignment_id} className={s.is_overdue ? 'overdue' : ''}>
+              <tr
+                key={s.assignment_id}
+                className={`${s.is_overdue ? 'overdue' : ''} cc-row-clickable`}
+                onClick={() => openDetail(s.assignment_id)}
+              >
                 <td><code>{s.control_ref}</code> {s.control_title}</td>
                 <td>{s.framework_code}</td>
                 <td>{s.control_owner_name || '—'}</td>
@@ -224,6 +258,15 @@ export default function ComplianceControlsTab({ projectId }: Props) {
             ))
           )}
         </div>
+      )}
+
+      {selectedId && (
+        <ControlDetailPanel
+          projectId={projectId}
+          assignmentId={selectedId}
+          onClose={() => setSelectedId(null)}
+          onUpdated={load}
+        />
       )}
     </div>
   )

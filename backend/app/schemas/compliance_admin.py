@@ -106,6 +106,25 @@ class ProjectControlAssignmentRead(BaseModel):
         from_attributes = True
 
 
+class ProjectControlAssignmentDetailRead(ProjectControlAssignmentRead):
+    description: Optional[str] = None
+    control_type: Optional[str] = None
+    testing_frequency_days: Optional[int] = None
+    mapped_document_types_json: Optional[list] = None
+    evidence_requirements_json: Optional[list] = None
+
+
+class ControlTestRunEntry(BaseModel):
+    id: UUID
+    action: str
+    tested_at: Optional[datetime] = None
+    tested_by_name: Optional[str] = None
+    status: Optional[str] = None
+    evidence_links_json: Optional[list] = None
+    notes: Optional[str] = None
+    created_at: Optional[datetime] = None
+
+
 class ProjectControlAssignmentUpdate(BaseModel):
     control_owner_user_id: Optional[UUID] = None
     assignee_user_id: Optional[UUID] = None

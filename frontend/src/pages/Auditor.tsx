@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Layout from '../components/Layout'
+import ControlDetailPanel from '../components/ControlDetailPanel'
 import api from '../services/api'
 import './Auditor.css'
 
@@ -53,6 +54,8 @@ export default function Auditor() {
   const [loading, setLoading] = useState(true)
   const [overdueOnly, setOverdueOnly] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [selectedControl, setSelectedControl] = useState<ControlItem | null>(null)
+  const [exporting, setExporting] = useState(false)
 
   const emptyOverview: Overview = {
     compliance_project_count: 0,
@@ -106,6 +109,24 @@ export default function Auditor() {
     if (tab === 'controls') loadControls()
   }, [overdueOnly, tab])
 
+  const exportReport = async () => {
+    setExporting(true)
+    try {
+      const res = await api.get('/auditor/report', {
+        params: { format: 'csv' },
+        responseType: 'blob',
+      })
+      const url = URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }))
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `auditor-report-${new Date().toISOString().split('T')[0]}.csv`
+      link.click()
+      URL.revokeObjectURL(url)
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
     <Layout>
       <div className="auditor-page">
@@ -114,7 +135,12 @@ export default function Auditor() {
             <h1>Portal audytora</h1>
             <p>Widok tylko do odczytu — audit trail, status testów kontrolek i luki compliance we wszystkich projektach</p>
           </div>
-          <span className="read-only-badge">Tylko odczyt</span>
+          <div className="auditor-header-actions">
+            <button className="btn-export" onClick={exportReport} disabled={exporting}>
+              {exporting ? 'Eksport…' : 'Eksportuj raport'}
+            </button>
+            <span className="read-only-badge">Tylko odczyt</span>
+          </div>
         </header>
 
         <div className="auditor-tabs">
@@ -209,7 +235,11 @@ export default function Auditor() {
                 </thead>
                 <tbody>
                   {controls.map((c) => (
-                    <tr key={c.assignment_id} className={c.is_overdue ? 'overdue' : ''}>
+                    <tr
+                      key={c.assignment_id}
+                      className={`auditor-row-clickable ${c.is_overdue ? 'overdue' : ''}`}
+                      onClick={() => setSelectedControl(c)}
+                    >
                       <td>
                         <Link to={`/projects/${c.project_id}`} className="project-link">
                           <code>{c.project_key}</code>
@@ -250,7 +280,11 @@ export default function Auditor() {
                 </thead>
                 <tbody>
                   {gaps.map((g) => (
-                    <tr key={g.assignment_id} className="gap-row">
+                    <tr
+                      key={g.assignment_id}
+                      className="gap-row auditor-row-clickable"
+                      onClick={() => setSelectedControl(g)}
+                    >
                       <td>
                         <Link to={`/projects/${g.project_id}`} className="project-link">
                           <code>{g.project_key}</code>
@@ -298,6 +332,15 @@ export default function Auditor() {
           </section>
         )}
       </div>
+
+      {selectedControl && (
+        <ControlDetailPanel
+          projectId={selectedControl.project_id}
+          assignmentId={selectedControl.assignment_id}
+          readOnly
+          onClose={() => setSelectedControl(null)}
+        />
+      )}
     </Layout>
   )
 }

@@ -8,7 +8,14 @@
 .cc-table th { background: #f8f9fa; }
 .cc-table select { max-width: 140px; font-size: 0.8rem; }
 .cc-table tr.overdue { background: #fff3e0; }
-.muted { color: #888; font-size: 0.8rem; }
+.cc-toolbar-actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.btn-export {
+  padding: 0.4rem 0.75rem; border: 1px solid #27ae60; background: #fff; color: #27ae60;
+  border-radius: 4px; cursor: pointer; font-size: 0.85rem;
+}
+.btn-export:hover { background: #e8f5e9; }
+.cc-row-clickable { cursor: pointer; }
+.cc-row-clickable:hover { background: #f5f0fa; }
 .cc-empty { padding: 1.5rem; text-align: center; color: #666; }
 .audit-list { display: flex; flex-direction: column; gap: 0.5rem; }
 .audit-row { border: 1px solid #eee; border-radius: 6px; padding: 0.75rem; }
