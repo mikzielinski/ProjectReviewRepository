@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import api from '../services/api'
+import { PRODUCTION_API } from '../config/apiBase'
 
 interface User {
   id: string
@@ -75,7 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         } else if (error.code === 'ETIMEDOUT' || error.message.includes('timeout')) {
           alert('⏱️ Request timeout!\n\nThe backend server may be slow or unresponsive.\nPlease check if the server is running.')
         } else if (error.message.includes('Network Error') || error.message.includes('Failed to fetch')) {
-          alert('🌐 Network error!\n\nPlease check:\n1. Backend server is running on http://localhost:8000\n2. CORS is configured correctly\n3. No firewall blocking the connection')
+          alert(`Network error — cannot reach ${api.defaults.baseURL}. If on GitHub Pages, backend is ${PRODUCTION_API}`)
         }
       }
       throw error

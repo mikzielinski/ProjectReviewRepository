@@ -1,7 +1,8 @@
 import axios from 'axios'
+import { PRODUCTION_API, resolveApiBaseUrl } from '../config/apiBase'
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1',
+  baseURL: resolveApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
@@ -63,13 +64,13 @@ api.interceptors.response.use(
       console.error('Request baseURL:', error.config?.baseURL)
       if (error.code === 'ECONNREFUSED') {
         console.error('🔴 Connection refused - Backend is not running on', error.config?.baseURL)
-        alert('Backend server is not running. Please start the backend server on http://localhost:8000')
+        alert(`Backend server is not reachable at ${error.config?.baseURL || PRODUCTION_API}`)
       } else if (error.code === 'ETIMEDOUT' || error.message.includes('timeout')) {
         console.error('⏱️ Request timeout - Backend may be slow or unresponsive')
-        alert('Request timeout - Backend may be slow or unresponsive. Please check if the backend server is running.')
+        alert('Request timeout — backend on Render may be waking up (free tier). Try again in 30 seconds.')
       } else if (error.message.includes('Network Error') || error.message.includes('Failed to fetch')) {
         console.error('🌐 Network error - Check CORS or backend connection')
-        alert('Network error - Please check if the backend server is running and CORS is configured correctly.')
+        alert(`Network error — cannot reach API at ${error.config?.baseURL || PRODUCTION_API}. Check Render status or try Cmd+Shift+R.`)
       }
     }
     if (error.response?.status === 401) {
