@@ -34,15 +34,33 @@ const Layout = ({ children }: LayoutProps) => {
           </Link>
           <Link 
             to="/projects" 
-            className={`nav-item ${isActive('/projects') && !location.pathname.match(/^\/projects\/[^/]+$/) ? 'active' : ''}`}
+            className={`nav-item ${isActive('/projects') && !location.pathname.startsWith('/compliance') && !location.pathname.startsWith('/admin') && !location.pathname.startsWith('/auditor') && !location.pathname.match(/^\/projects\/[^/]+$/) ? 'active' : ''}`}
           >
-            📁 Projekty IT
+            💻 Projekty dev
+          </Link>
+          <Link 
+            to="/compliance" 
+            className={`nav-item ${isActive('/compliance') ? 'active' : ''}`}
+          >
+            🛡️ Compliance & Security
           </Link>
           <Link 
             to="/templates" 
             className={`nav-item ${isActive('/templates') ? 'active' : ''}`}
           >
             📄 Templates
+          </Link>
+          <Link 
+            to="/admin" 
+            className={`nav-item ${isActive('/admin') ? 'active' : ''}`}
+          >
+            ⚙️ Admin
+          </Link>
+          <Link 
+            to="/auditor" 
+            className={`nav-item ${isActive('/auditor') ? 'active' : ''}`}
+          >
+            🔍 Audytor
           </Link>
           <div className="nav-separator"></div>
           {isActive('/projects') && location.pathname.match(/^\/projects\/[^/]+$/) ? (

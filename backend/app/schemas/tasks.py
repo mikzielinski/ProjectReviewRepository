@@ -58,6 +58,7 @@ class TaskRead(BaseModel):
     verified_at: Optional[datetime] = None
     verified_by: Optional[UUID] = None
     is_blocking: bool
+    can_execute: bool = False
 
     class Config:
         from_attributes = True

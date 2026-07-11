@@ -108,7 +108,7 @@ const Projects = () => {
     try {
       console.log('Loading my projects and tasks...')
       const [projectsRes, tasksRes] = await Promise.all([
-        api.get('/projects/my-projects').catch(err => {
+        api.get('/projects/my-projects', { params: { category: 'DEVELOPMENT' } }).catch(err => {
           console.error('Error loading projects:', err)
           return { data: [] }
         }),

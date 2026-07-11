@@ -9,6 +9,7 @@ import RACITab from '../components/RACITab'
 import TemplatesTab from '../components/TemplatesTab'
 import TasksTab from '../components/TasksTab'
 import GanttTab from '../components/GanttTab'
+import ComplianceControlsTab from '../components/ComplianceControlsTab'
 
 interface Project {
   id: string
@@ -16,6 +17,7 @@ interface Project {
   name: string
   status: string
   created_at: string
+  project_category?: string
   folder_id?: string
   enable_4_eyes_principal?: boolean
   required_document_types_json?: any[]
@@ -25,7 +27,7 @@ interface Project {
   raci_matrix_json?: any
 }
 
-type Tab = 'overview' | 'documents' | 'team' | 'tasks' | 'gantt' | 'raci' | 'templates'
+type Tab = 'overview' | 'documents' | 'team' | 'tasks' | 'gantt' | 'raci' | 'templates' | 'compliance'
 
 const ProjectDetail = () => {
   const { id } = useParams()
@@ -150,6 +152,14 @@ const ProjectDetail = () => {
           >
             Templates
           </button>
+          {project.project_category === 'COMPLIANCE' && (
+            <button
+              className={`tab ${activeTab === 'compliance' ? 'active' : ''}`}
+              onClick={() => setActiveTab('compliance')}
+            >
+              🛡️ Kontrolki & Audit
+            </button>
+          )}
         </div>
 
         <div className="tab-content">
@@ -400,6 +410,9 @@ const ProjectDetail = () => {
           {activeTab === 'gantt' && <GanttTab projectId={id!} />}
           {activeTab === 'raci' && <RACITab projectId={id!} onTeamUpdate={loadProject} />}
           {activeTab === 'templates' && <TemplatesTab projectId={id!} />}
+          {activeTab === 'compliance' && project.project_category === 'COMPLIANCE' && (
+            <ComplianceControlsTab projectId={id!} />
+          )}
         </div>
       </div>
     </Layout>

@@ -15,7 +15,11 @@ router = APIRouter(prefix="/projects", tags=["projects"])
 
 
 @router.get("/my-projects", response_model=list[ProjectRead])
-def list_my_projects(db: Session = Depends(get_db), current_user=Depends(get_current_active_user)):
+def list_my_projects(
+    category: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_active_user),
+):
     """List projects where current user is a member"""
     try:
         from app.models import ProjectMember
@@ -42,6 +46,8 @@ def list_my_projects(db: Session = Depends(get_db), current_user=Depends(get_cur
             return []
         
         projects = db.query(Project).filter(Project.id.in_(project_ids)).all()
+        if category:
+            projects = [p for p in projects if getattr(p, "project_category", "DEVELOPMENT") == category.upper()]
         logger.info(f"Found {len(projects)} projects for user {current_user.id}")
         
         result = []
@@ -142,7 +148,8 @@ def list_my_tasks(
                 "completed_at": getattr(task, 'completed_at', None),
                 "verified_at": getattr(task, 'verified_at', None),
                 "verified_by": getattr(task, 'verified_by', None),
-                "is_blocking": getattr(task, 'is_blocking', False)
+                "is_blocking": getattr(task, 'is_blocking', False),
+                "can_execute": _user_can_execute_task(task, current_user, task.project_id, db),
             }
             task_read = TaskRead.model_validate(task_dict)
             task_read_dict = task_read.model_dump()
@@ -245,6 +252,8 @@ def create_project(
         name=payload.name,
         description=payload.description,
         project_type=payload.project_type or "IT",
+        project_category=(payload.project_category or "DEVELOPMENT").upper(),
+        project_type_definition_id=payload.project_type_definition_id,
         status=payload.status or "ACTIVE",
         retention_policy_json=payload.retention_policy_json,
         approval_policies_json=payload.approval_policies_json,
@@ -337,6 +346,13 @@ def create_project(
     
     db.commit()
     db.refresh(project)
+
+    if project.project_category == "COMPLIANCE":
+        try:
+            from app.services.project_controls_sync import sync_controls_for_project
+            sync_controls_for_project(db, project, current_user.id)
+        except Exception as e:
+            logger.warning(f"Auto-sync controls failed for project {project.id}: {e}")
     
     logger.info(f"Created project {project.id} and added creator {current_user.id} as member")
     return project
@@ -381,6 +397,10 @@ def update_project(
         project.description = payload.description
     if payload.project_type is not None:
         project.project_type = payload.project_type
+    if payload.project_category is not None:
+        project.project_category = payload.project_category.upper()
+    if payload.project_type_definition_id is not None:
+        project.project_type_definition_id = payload.project_type_definition_id
     if payload.status is not None:
         project.status = payload.status
     if payload.folder_id is not None:
@@ -509,6 +529,111 @@ def _get_team_members_dict(project_uuid, db):
                 "expires_at": member.expires_at.isoformat() if member.expires_at else None
             }
     return result
+
+
+def _user_can_execute_task(task, current_user, project_uuid, db) -> bool:
+    """True when the user is the assignee or holds the task's required RACI role."""
+    from datetime import datetime
+    from sqlalchemy import or_
+    from app.models import ProjectMember, Project
+
+    if task.assigned_to_user_id and task.assigned_to_user_id == current_user.id:
+        return True
+
+    if task.required_role:
+        member = (
+            db.query(ProjectMember)
+            .filter(
+                ProjectMember.project_id == project_uuid,
+                ProjectMember.user_id == current_user.id,
+                ProjectMember.role_code == task.required_role,
+            )
+            .filter(
+                or_(
+                    ProjectMember.expires_at.is_(None),
+                    ProjectMember.expires_at > datetime.utcnow(),
+                )
+            )
+            .first()
+        )
+        if member:
+            return True
+
+        project = db.query(Project).filter(Project.id == project_uuid).first()
+        if project and project.raci_matrix_json:
+            role_assignments = project.raci_matrix_json.get("role_assignments", {})
+            assigned_user_id = role_assignments.get(task.required_role)
+            if assigned_user_id and str(assigned_user_id) == str(current_user.id):
+                return True
+
+        return False
+
+    if not task.assigned_to_user_id:
+        member = (
+            db.query(ProjectMember)
+            .filter(
+                ProjectMember.project_id == project_uuid,
+                ProjectMember.user_id == current_user.id,
+            )
+            .filter(
+                or_(
+                    ProjectMember.expires_at.is_(None),
+                    ProjectMember.expires_at > datetime.utcnow(),
+                )
+            )
+            .first()
+        )
+        return member is not None
+
+    return False
+
+
+def _apply_task_completion_side_effects(task, project_uuid, db) -> None:
+    """Mark task completed and auto-trigger the next RACI task in sequence."""
+    from app.models.entities import Task
+    from app.core.enums import TaskStatus
+
+    task.status = TaskStatus.COMPLETED.value
+    task.completed_at = datetime.utcnow()
+
+    if not (task.raci_stage and task.raci_task_name):
+        return
+
+    base_task_name = task.raci_task_name
+
+    if task.title.endswith(" Creation"):
+        review_title = f"{base_task_name} Review"
+        review_task = (
+            db.query(Task)
+            .filter(
+                Task.project_id == project_uuid,
+                Task.raci_stage == task.raci_stage,
+                Task.raci_task_name == base_task_name,
+                Task.title == review_title,
+                Task.status == TaskStatus.OPEN.value,
+            )
+            .first()
+        )
+        if review_task:
+            review_task.status = TaskStatus.IN_PROGRESS.value
+            logger.info(f"Auto-triggered Review task: {review_title}")
+
+    elif task.title.endswith(" Review"):
+        approval_title = f"{base_task_name} Approval"
+        approval_task = (
+            db.query(Task)
+            .filter(
+                Task.project_id == project_uuid,
+                Task.raci_stage == task.raci_stage,
+                Task.raci_task_name == base_task_name,
+                Task.title == approval_title,
+                Task.status == TaskStatus.OPEN.value,
+            )
+            .first()
+        )
+        if approval_task:
+            approval_task.status = TaskStatus.IN_PROGRESS.value
+            logger.info(f"Auto-triggered Approval task: {approval_title}")
 
 
 def _get_default_raci_matrix():
@@ -965,7 +1090,8 @@ def list_project_tasks(
                 "completed_at": task.completed_at,
                 "verified_at": task.verified_at,
                 "verified_by": task.verified_by,
-                "is_blocking": task.is_blocking
+                "is_blocking": task.is_blocking,
+                "can_execute": _user_can_execute_task(task, current_user, project_uuid, db),
             }
             
             try:
@@ -1111,46 +1237,20 @@ def update_project_task(
     if "description" in payload:
         task.description = payload["description"]
     if "status" in payload:
-        old_status = task.status
-        task.status = payload["status"]
-        if payload["status"] == TaskStatus.COMPLETED.value:
-            task.completed_at = datetime.utcnow()
-            
-            # Auto-trigger next task in sequence: Creation → Review → Approval
-            # Check if this task is part of a RACI sequence
-            if task.raci_stage and task.raci_task_name:
-                base_task_name = task.raci_task_name
-                
-                # Determine current task type from title
-                if task.title.endswith(" Creation"):
-                    # Creation completed → trigger Review
-                    review_title = f"{base_task_name} Review"
-                    review_task = db.query(Task).filter(
-                        Task.project_id == project_uuid,
-                        Task.raci_stage == task.raci_stage,
-                        Task.raci_task_name == base_task_name,
-                        Task.title == review_title,
-                        Task.status == TaskStatus.OPEN.value
-                    ).first()
-                    
-                    if review_task:
-                        review_task.status = TaskStatus.IN_PROGRESS.value
-                        logger.info(f"Auto-triggered Review task: {review_title}")
-                
-                elif task.title.endswith(" Review"):
-                    # Review completed → trigger Approval
-                    approval_title = f"{base_task_name} Approval"
-                    approval_task = db.query(Task).filter(
-                        Task.project_id == project_uuid,
-                        Task.raci_stage == task.raci_stage,
-                        Task.raci_task_name == base_task_name,
-                        Task.title == approval_title,
-                        Task.status == TaskStatus.OPEN.value
-                    ).first()
-                    
-                    if approval_task:
-                        approval_task.status = TaskStatus.IN_PROGRESS.value
-                        logger.info(f"Auto-triggered Approval task: {approval_title}")
+        new_status = payload["status"]
+        if new_status != task.status:
+            if new_status in (TaskStatus.COMPLETED.value, TaskStatus.IN_PROGRESS.value):
+                if not _user_can_execute_task(task, current_user, project_uuid, db):
+                    raise HTTPException(
+                        status_code=403,
+                        detail="Only the task owner or assigned user can change task status",
+                    )
+            if new_status == TaskStatus.COMPLETED.value:
+                _apply_task_completion_side_effects(task, project_uuid, db)
+            else:
+                task.status = new_status
+                if new_status == TaskStatus.IN_PROGRESS.value and not task.assigned_to_user_id:
+                    task.assigned_to_user_id = current_user.id
     if "assigned_to_user_id" in payload:
         if payload["assigned_to_user_id"]:
             try:
@@ -1727,4 +1827,93 @@ def review_task(
     db.refresh(task)
     
     return {"id": str(task.id), "status": task.status, "action": action}
+
+
+@router.post("/{project_id}/tasks/{task_id}/start", response_model=dict)
+def start_project_task(
+    project_id: str,
+    task_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_active_user),
+):
+    """Start working on a task (OPEN → IN_PROGRESS)."""
+    from uuid import UUID
+    from app.models.entities import Task
+    from app.core.enums import TaskStatus
+
+    try:
+        project_uuid = UUID(project_id)
+        task_uuid = UUID(task_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid ID format")
+
+    task = db.query(Task).filter(Task.id == task_uuid, Task.project_id == project_uuid).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    if not _user_can_execute_task(task, current_user, project_uuid, db):
+        raise HTTPException(
+            status_code=403,
+            detail="Only the task owner or assigned user can start this task",
+        )
+
+    if task.status != TaskStatus.OPEN.value:
+        raise HTTPException(
+            status_code=400,
+            detail="Task must be in OPEN status to start",
+        )
+
+    task.status = TaskStatus.IN_PROGRESS.value
+    if not task.assigned_to_user_id:
+        task.assigned_to_user_id = current_user.id
+
+    db.commit()
+    db.refresh(task)
+
+    return {"id": str(task.id), "status": task.status}
+
+
+@router.post("/{project_id}/tasks/{task_id}/complete", response_model=dict)
+def complete_project_task(
+    project_id: str,
+    task_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_active_user),
+):
+    """Complete a task (OPEN/IN_PROGRESS → COMPLETED)."""
+    from uuid import UUID
+    from app.models.entities import Task
+    from app.core.enums import TaskStatus
+
+    try:
+        project_uuid = UUID(project_id)
+        task_uuid = UUID(task_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid ID format")
+
+    task = db.query(Task).filter(Task.id == task_uuid, Task.project_id == project_uuid).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    if not _user_can_execute_task(task, current_user, project_uuid, db):
+        raise HTTPException(
+            status_code=403,
+            detail="Only the task owner or assigned user can complete this task",
+        )
+
+    if task.status not in (TaskStatus.OPEN.value, TaskStatus.IN_PROGRESS.value):
+        raise HTTPException(
+            status_code=400,
+            detail="Task cannot be completed from current status",
+        )
+
+    if not task.assigned_to_user_id:
+        task.assigned_to_user_id = current_user.id
+
+    _apply_task_completion_side_effects(task, project_uuid, db)
+
+    db.commit()
+    db.refresh(task)
+
+    return {"id": str(task.id), "status": task.status, "completed_at": task.completed_at.isoformat() if task.completed_at else None}
 

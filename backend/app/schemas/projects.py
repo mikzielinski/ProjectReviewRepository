@@ -12,6 +12,8 @@ class ProjectCreate(BaseModel):
     name: str
     description: Optional[str] = None
     project_type: Optional[str] = Field(default="IT", description="IT | RPA | INFRA | DATA | SECURITY | INTEGRATION")
+    project_category: Optional[str] = Field(default="DEVELOPMENT", description="DEVELOPMENT | COMPLIANCE")
+    project_type_definition_id: Optional[UUID] = None
     status: Optional[str] = "ACTIVE"
     retention_policy_json: Optional[dict] = None
     approval_policies_json: Optional[dict] = None
@@ -28,6 +30,8 @@ class ProjectUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     project_type: Optional[str] = None
+    project_category: Optional[str] = None
+    project_type_definition_id: Optional[UUID] = None
     status: Optional[str] = None
     folder_id: Optional[UUID] = None
     retention_policy_json: Optional[dict] = None
@@ -48,6 +52,8 @@ class ProjectRead(BaseModel):
     name: str
     description: Optional[str] = None
     project_type: str = "IT"
+    project_category: str = "DEVELOPMENT"
+    project_type_definition_id: Optional[UUID] = None
     status: str
     retention_policy_json: Optional[dict] = None
     approval_policies_json: Optional[dict] = None
@@ -94,6 +100,7 @@ class ItProjectSummary(BaseModel):
     key: str
     name: str
     project_type: str
+    project_category: str = "DEVELOPMENT"
     status: str
     compliance_standards: list[str]
     documents_total: int

@@ -92,6 +92,8 @@ class Project(Base):
     name = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     project_type = Column(String(32), default="IT", nullable=False)
+    project_category = Column(String(32), default="DEVELOPMENT", nullable=False)
+    project_type_definition_id = Column(PostgresUUID(as_uuid=True), ForeignKey("project_type_definitions.id"), nullable=True)
     status = Column(String, default="ACTIVE", nullable=False)
     retention_policy_json = Column(JSONB, nullable=True)
     approval_policies_json = Column(JSONB, nullable=True)
@@ -417,5 +419,103 @@ class DocumentType(Base):
 
     __table_args__ = (
         Index("ix_document_type_org_code", "org_id", "code"),
+    )
+
+
+class ProjectTypeDefinition(Base):
+    """Admin-configurable project type (development vs compliance/security)."""
+    __tablename__ = "project_type_definitions"
+
+    id = Column(PostgresUUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    org_id = Column(PostgresUUID(as_uuid=True), ForeignKey("orgs.id"), nullable=True)
+    code = Column(String(64), nullable=False, index=True)
+    name = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    category = Column(String(32), nullable=False, default="DEVELOPMENT")  # DEVELOPMENT | COMPLIANCE
+    default_compliance_settings_json = Column(JSONB, nullable=True)
+    default_required_document_types_json = Column(JSONB, nullable=True)
+    default_template_doc_types_json = Column(JSONB, nullable=True)
+    default_control_framework_codes_json = Column(JSONB, nullable=True)
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_by = Column(PostgresUUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=utcnow, nullable=False)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow, nullable=False)
+
+    creator = relationship("User", foreign_keys=[created_by])
+
+    __table_args__ = (
+        UniqueConstraint("org_id", "code", name="uq_project_type_def_org_code"),
+    )
+
+
+class ComplianceFramework(Base):
+    """Compliance standard catalog (ISO 27001, SOC2, SOX, etc.)."""
+    __tablename__ = "compliance_frameworks"
+
+    id = Column(PostgresUUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    code = Column(String(64), nullable=False, unique=True, index=True)
+    name = Column(String, nullable=False)
+    version = Column(String(32), nullable=True)
+    description = Column(Text, nullable=True)
+    source_url = Column(String, nullable=True)
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime, default=utcnow, nullable=False)
+
+
+class ComplianceControl(Base):
+    """Control or sub-control within a compliance framework."""
+    __tablename__ = "compliance_controls"
+
+    id = Column(PostgresUUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    framework_id = Column(PostgresUUID(as_uuid=True), ForeignKey("compliance_frameworks.id"), nullable=False)
+    parent_control_id = Column(PostgresUUID(as_uuid=True), ForeignKey("compliance_controls.id"), nullable=True)
+    control_ref = Column(String(64), nullable=False)
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    domain = Column(String(128), nullable=True)
+    control_type = Column(String(32), nullable=True)  # preventive | detective | corrective
+    testing_frequency_days = Column(Integer, nullable=True)
+    evidence_requirements_json = Column(JSONB, nullable=True)
+    mapped_document_types_json = Column(JSONB, nullable=True)
+    sort_order = Column(Integer, default=0, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime, default=utcnow, nullable=False)
+
+    framework = relationship("ComplianceFramework", backref="controls")
+    parent = relationship("ComplianceControl", remote_side=[id], backref="sub_controls")
+
+    __table_args__ = (
+        UniqueConstraint("framework_id", "control_ref", name="uq_framework_control_ref"),
+        Index("ix_control_framework_domain", "framework_id", "domain"),
+    )
+
+
+class ProjectControlAssignment(Base):
+    """Project-level control implementation with owner, assignee, and schedule."""
+    __tablename__ = "project_control_assignments"
+
+    id = Column(PostgresUUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    project_id = Column(PostgresUUID(as_uuid=True), ForeignKey("projects.id"), nullable=False)
+    control_id = Column(PostgresUUID(as_uuid=True), ForeignKey("compliance_controls.id"), nullable=False)
+    control_owner_user_id = Column(PostgresUUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    assignee_user_id = Column(PostgresUUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    status = Column(String(32), default="NOT_STARTED", nullable=False)
+    is_applicable = Column(Boolean, default=True, nullable=False)
+    implementation_notes = Column(Text, nullable=True)
+    evidence_links_json = Column(JSONB, nullable=True)
+    review_frequency_days = Column(Integer, nullable=True)
+    next_review_at = Column(DateTime, nullable=True)
+    last_tested_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=utcnow, nullable=False)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow, nullable=False)
+
+    project = relationship("Project", backref="control_assignments")
+    control = relationship("ComplianceControl")
+    control_owner = relationship("User", foreign_keys=[control_owner_user_id])
+    assignee = relationship("User", foreign_keys=[assignee_user_id])
+
+    __table_args__ = (
+        UniqueConstraint("project_id", "control_id", name="uq_project_control"),
+        Index("ix_project_control_next_review", "project_id", "next_review_at"),
     )
 

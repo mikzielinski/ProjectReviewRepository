@@ -9,10 +9,11 @@ from alembic import context
 from app.config import get_settings
 from app.db import Base
 from app.models import (
-    Org, User, Role, Project, ProjectMember, Template,
-    Document, DocumentVersion, Approval, ReviewComment,
+    Org, User, Role, Project, ProjectMember, ProjectTypeDefinition,
+    ComplianceFramework, ComplianceControl, ProjectControlAssignment,
+    Template, Document, DocumentVersion, Approval, ReviewComment,
     Task, Reminder, Escalation, Gate, GanttItem,
-    Evidence, PKBSnapshot, AIRun, AuditLog
+    Evidence, PKBSnapshot, AIRun, AuditLog, DocumentType,
 )
 
 config = context.config

@@ -1,0 +1,16 @@
+.compliance-controls-tab { padding: 0.5rem 0; }
+.cc-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; }
+.cc-subtabs { display: flex; gap: 0.35rem; }
+.cc-subtabs button { padding: 0.4rem 0.75rem; border: 1px solid #ddd; background: #fff; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
+.cc-subtabs button.active { background: #8e44ad; color: #fff; border-color: #8e44ad; }
+.cc-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.cc-table th, .cc-table td { border-bottom: 1px solid #eee; padding: 0.5rem; text-align: left; vertical-align: top; }
+.cc-table th { background: #f8f9fa; }
+.cc-table select { max-width: 140px; font-size: 0.8rem; }
+.cc-table tr.overdue { background: #fff3e0; }
+.muted { color: #888; font-size: 0.8rem; }
+.cc-empty { padding: 1.5rem; text-align: center; color: #666; }
+.audit-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.audit-row { border: 1px solid #eee; border-radius: 6px; padding: 0.75rem; }
+.audit-meta { display: flex; flex-wrap: wrap; gap: 0.75rem; font-size: 0.85rem; align-items: center; }
+.audit-meta strong { color: #1a5276; }

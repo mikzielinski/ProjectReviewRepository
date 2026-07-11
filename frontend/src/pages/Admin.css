@@ -1,0 +1,32 @@
+.admin-page { padding: 1.5rem; max-width: 1200px; }
+.admin-header h1 { margin: 0 0 0.25rem; }
+.admin-header p { color: #666; margin: 0; }
+.admin-tabs { display: flex; gap: 0.5rem; margin: 1.25rem 0; }
+.admin-tabs button {
+  padding: 0.5rem 1rem; border: 1px solid #ddd; background: #fff; border-radius: 6px; cursor: pointer;
+}
+.admin-tabs button.active { background: #1a5276; color: #fff; border-color: #1a5276; }
+.admin-section { padding: 1.25rem; }
+.hint { color: #666; font-size: 0.9rem; }
+.type-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem; }
+.type-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; background: #fafafa; }
+.type-card.compliance { border-left: 4px solid #8e44ad; }
+.type-card.development { border-left: 4px solid #2980b9; }
+.type-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.badge { font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 999px; font-weight: 600; }
+.badge.compliance { background: #f3e5f5; color: #6a1b9a; }
+.badge.dev { background: #e3f2fd; color: #1565c0; }
+.type-card h3 { margin: 0 0 0.5rem; font-size: 1rem; }
+.type-card p { margin: 0 0 0.5rem; font-size: 0.85rem; color: #555; }
+.tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.5rem 0; }
+.tag { background: #eee; padding: 0.15rem 0.45rem; border-radius: 4px; font-size: 0.75rem; }
+.meta { font-size: 0.8rem; color: #777; }
+.controls-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; }
+.framework-summary { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0; }
+.fw-chip { background: #f0f4f8; border: 1px solid #dde; padding: 0.4rem 0.75rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+.fw-chip strong { margin-right: 0.35rem; }
+.controls-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.controls-table th, .controls-table td { border-bottom: 1px solid #eee; padding: 0.5rem; text-align: left; vertical-align: top; }
+.controls-table th { background: #f8f9fa; font-weight: 600; }
+.admin-error { color: #c0392b; }
+.empty-cell { text-align: center; color: #888; padding: 1.5rem !important; }

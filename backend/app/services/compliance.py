@@ -3,7 +3,7 @@ Compliance mapping service for HIPAA/GxP/GIS standards.
 Maps document types to applicable compliance standards.
 """
 
-from typing import List, Set
+from typing import List, Set, Optional
 from enum import Enum
 
 
@@ -67,7 +67,7 @@ _PROJECT_COMPLIANCE_KEYS = {
 }
 
 
-def get_active_compliance_standards(compliance_settings: dict | None) -> List[str]:
+def get_active_compliance_standards(compliance_settings: Optional[dict]) -> List[str]:
     """Return list of enabled compliance standards from project settings JSON."""
     if not compliance_settings:
         return [ComplianceStandard.GIS.value]

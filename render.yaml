@@ -20,4 +20,6 @@ services:
         sync: false
       - key: OPENAI_API_KEY
         sync: false
+      - key: PROJECT_ACCESS_BOOTSTRAP_EMAILS
+        sync: false
 

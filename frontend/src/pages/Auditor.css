@@ -1,0 +1,61 @@
+.auditor-page { padding: 1.5rem; max-width: 1200px; }
+.auditor-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
+.auditor-header h1 { margin: 0 0 0.25rem; }
+.auditor-header p { color: #666; margin: 0; max-width: 640px; }
+.read-only-badge {
+  background: #e8f4fd; color: #1565c0; font-size: 0.75rem; font-weight: 600;
+  padding: 0.35rem 0.75rem; border-radius: 999px; border: 1px solid #bbdefb; white-space: nowrap;
+}
+.auditor-tabs { display: flex; gap: 0.5rem; margin: 1.25rem 0; flex-wrap: wrap; }
+.auditor-tabs button {
+  padding: 0.5rem 1rem; border: 1px solid #ddd; background: #fff; border-radius: 6px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.auditor-tabs button.active { background: #6a1b9a; color: #fff; border-color: #6a1b9a; }
+.tab-badge {
+  background: #e74c3c; color: #fff; font-size: 0.7rem; padding: 0.1rem 0.4rem; border-radius: 999px; min-width: 1.2rem; text-align: center;
+}
+.auditor-tabs button.active .tab-badge { background: #fff; color: #6a1b9a; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
+.stat-card {
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+.stat-card.warn { border-left: 4px solid #f39c12; }
+.stat-card.alert { border-left: 4px solid #e74c3c; }
+.stat-card.ok { border-left: 4px solid #27ae60; }
+.stat-value { font-size: 1.75rem; font-weight: 700; color: #2c3e50; }
+.stat-label { font-size: 0.8rem; color: #666; margin-top: 0.25rem; }
+.status-breakdown { padding: 1.25rem; }
+.status-breakdown h2 { margin: 0 0 1rem; font-size: 1rem; }
+.status-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.status-chip {
+  background: #f0f4f8; border: 1px solid #dde; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.85rem;
+  display: flex; gap: 0.5rem; align-items: center;
+}
+.auditor-section { padding: 1.25rem; }
+.section-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; }
+.section-toolbar h2 { margin: 0; font-size: 1rem; }
+.filter-check { font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; }
+.hint, .empty-hint { color: #666; font-size: 0.9rem; }
+.auditor-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.auditor-table th, .auditor-table td { border-bottom: 1px solid #eee; padding: 0.5rem; text-align: left; vertical-align: top; }
+.auditor-table th { background: #f8f9fa; font-weight: 600; }
+.auditor-table tr.overdue { background: #fff3e0; }
+.auditor-table tr.gap-row { background: #fef9e7; }
+.muted { color: #888; font-size: 0.8rem; }
+.project-link { color: #1a5276; text-decoration: none; }
+.project-link:hover { text-decoration: underline; }
+.status-pill {
+  display: inline-block; font-size: 0.75rem; padding: 0.15rem 0.45rem; border-radius: 4px; font-weight: 600;
+}
+.status-pill.status-not_started { background: #fce4ec; color: #c62828; }
+.status-pill.status-in_progress { background: #fff3e0; color: #e65100; }
+.status-pill.status-implemented { background: #e8f5e9; color: #2e7d32; }
+.status-pill.status-tested { background: #e3f2fd; color: #1565c0; }
+.status-pill.status-non_applicable { background: #f5f5f5; color: #757575; }
+.gap-reason { color: #c0392b; font-weight: 500; }
+.audit-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.audit-row { border: 1px solid #eee; border-radius: 6px; padding: 0.75rem; }
+.audit-meta { display: flex; flex-wrap: wrap; gap: 0.75rem; font-size: 0.85rem; align-items: center; }
+.audit-meta strong { color: #6a1b9a; }

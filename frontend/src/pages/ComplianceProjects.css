@@ -1,0 +1,14 @@
+.compliance-projects-page { padding: 1.5rem; }
+.compliance-projects-page header h1 { margin: 0 0 0.25rem; }
+.compliance-projects-page header p { color: #666; margin: 0 0 1.25rem; }
+.project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+.compliance-card { cursor: pointer; transition: box-shadow 0.15s; border-left: 4px solid #8e44ad; }
+.compliance-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.card-top { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+.status { font-size: 0.75rem; background: #e8f5e9; color: #2e7d32; padding: 0.15rem 0.5rem; border-radius: 4px; }
+.compliance-card h3 { margin: 0 0 0.5rem; }
+.desc { font-size: 0.85rem; color: #555; margin: 0 0 0.75rem; }
+.standards { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.75rem; }
+.std-tag { background: #f3e5f5; color: #6a1b9a; font-size: 0.7rem; padding: 0.15rem 0.45rem; border-radius: 4px; font-weight: 600; }
+.open-hint { font-size: 0.8rem; color: #1a5276; margin: 0; }
+.empty { padding: 2rem; text-align: center; color: #666; }

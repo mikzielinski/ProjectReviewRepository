@@ -8,21 +8,10 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.core.enums import DocumentState, TaskStatus
-from app.models import Document, DocumentVersion, Project, ProjectMember, Task
+from app.models import Document, DocumentVersion, Project, Task
 from app.schemas.projects import ItPortfolioDashboard, ItProjectSummary
 from app.services.compliance import get_active_compliance_standards
-
-
-def _project_ids_for_user(db: Session, user_id: UUID) -> list[UUID]:
-    memberships = (
-        db.query(ProjectMember)
-        .filter(ProjectMember.user_id == user_id)
-        .filter(
-            (ProjectMember.expires_at.is_(None)) | (ProjectMember.expires_at > datetime.now(timezone.utc))
-        )
-        .all()
-    )
-    return [m.project_id for m in memberships]
+from app.services.project_access import project_ids_for_user
 
 
 def _governance_score(
@@ -90,6 +79,7 @@ def build_project_summary(db: Session, project: Project) -> ItProjectSummary:
         key=project.key,
         name=project.name,
         project_type=getattr(project, "project_type", None) or "IT",
+        project_category=getattr(project, "project_category", None) or "DEVELOPMENT",
         status=project.status,
         compliance_standards=compliance,
         documents_total=len(documents),
@@ -105,7 +95,7 @@ def build_project_summary(db: Session, project: Project) -> ItProjectSummary:
 
 
 def build_it_portfolio(db: Session, user_id: UUID) -> ItPortfolioDashboard:
-    project_ids = _project_ids_for_user(db, user_id)
+    project_ids = project_ids_for_user(db, user_id)
     projects = db.query(Project).filter(Project.id.in_(project_ids)).all() if project_ids else []
     summaries = [build_project_summary(db, p) for p in projects]
 

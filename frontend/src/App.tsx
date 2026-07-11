@@ -5,6 +5,9 @@ import ItDashboard from './pages/ItDashboard'
 import Projects from './pages/Projects'
 import ProjectDetail from './pages/ProjectDetail'
 import Templates from './pages/Templates'
+import Admin from './pages/Admin'
+import Auditor from './pages/Auditor'
+import ComplianceProjects from './pages/ComplianceProjects'
 import ProtectedRoute from './components/ProtectedRoute'
 
 const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '') || undefined
@@ -36,6 +39,30 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProjectDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/compliance"
+            element={
+              <ProtectedRoute>
+                <ComplianceProjects />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <Admin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/auditor"
+            element={
+              <ProtectedRoute>
+                <Auditor />
               </ProtectedRoute>
             }
           />

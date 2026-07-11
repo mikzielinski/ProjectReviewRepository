@@ -24,7 +24,7 @@ logger.info("✅ Models imported")
 from app.core.enums import RoleCode
 logger.info("✅ Enums imported")
 
-from app.routers import auth, projects, members, templates, documents, users, folders, document_types, dashboard
+from app.routers import auth, projects, members, templates, documents, users, folders, document_types, dashboard, admin, project_controls, auditor
 logger.info("✅ Routers imported")
 
 app = FastAPI(title="DMS Governance API", version="0.1.0")
@@ -235,6 +235,9 @@ app.include_router(documents.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(document_types.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
+app.include_router(admin.router, prefix="/api/v1")
+app.include_router(project_controls.router, prefix="/api/v1")
+app.include_router(auditor.router, prefix="/api/v1")
 
 
 @app.on_event("startup")
@@ -297,6 +300,63 @@ async def startup_event():
             import traceback
             traceback.print_exc()
     
+        try:
+            logger.info("Bootstrapping project memberships...")
+            print("STARTUP: Bootstrapping project memberships...")
+            from app.services.project_access import bootstrap_memberships_from_env
+
+            session = SessionLocal()
+            try:
+                added = bootstrap_memberships_from_env(session)
+                if added:
+                    logger.info(f"Bootstrapped {added} project membership(s)")
+                    print(f"STARTUP: Bootstrapped {added} project membership(s)")
+            finally:
+                session.close()
+        except Exception as e:
+            logger.error(f"Error bootstrapping project memberships: {e}")
+            print(f"ERROR bootstrapping project memberships: {e}")
+            import traceback
+            traceback.print_exc()
+
+        try:
+            logger.info("Seeding compliance library...")
+            print("STARTUP: Seeding compliance library...")
+            from app.services.seed_compliance_library import seed_compliance_library, seed_project_type_definitions
+
+            session = SessionLocal()
+            try:
+                fw, ctrl = seed_compliance_library(session)
+                types = seed_project_type_definitions(session)
+                if fw or ctrl or types:
+                    print(f"STARTUP: Compliance seed — {fw} frameworks, {ctrl} controls, {types} project types")
+            finally:
+                session.close()
+        except Exception as e:
+            logger.error(f"Error seeding compliance library: {e}")
+            print(f"ERROR seeding compliance library: {e}")
+            import traceback
+            traceback.print_exc()
+
+        try:
+            logger.info("Seeding example compliance projects...")
+            print("STARTUP: Seeding example compliance projects...")
+            from app.services.seed_example_projects import seed_example_projects
+
+            session = SessionLocal()
+            try:
+                created = seed_example_projects(session)
+                if created:
+                    logger.info(f"Created {created} example project(s)")
+                    print(f"STARTUP: Created {created} example project(s)")
+            finally:
+                session.close()
+        except Exception as e:
+            logger.error(f"Error seeding example projects: {e}")
+            print(f"ERROR seeding example projects: {e}")
+            import traceback
+            traceback.print_exc()
+
     # Run in background thread to avoid blocking server startup
     thread = threading.Thread(target=init_db, daemon=True)
     thread.start()

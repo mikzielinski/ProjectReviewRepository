@@ -46,10 +46,13 @@ const ProjectSetupWizard: React.FC<ProjectSetupWizardProps> = ({ project, onComp
   ]
   
   // Step 1: Basic Info
+  const [projectTypeDefinitions, setProjectTypeDefinitions] = useState<any[]>([])
   const [basicInfo, setBasicInfo] = useState({
     key: project?.key || '',
     name: project?.name || '',
     description: project?.description || '',
+    project_category: project?.project_category || 'DEVELOPMENT',
+    project_type_definition_id: project?.project_type_definition_id || '',
     project_type: project?.project_type || 'IT',
     status: project?.status || 'ACTIVE',
     folder_id: project?.folder_id || '',
@@ -132,7 +135,36 @@ const ProjectSetupWizard: React.FC<ProjectSetupWizardProps> = ({ project, onComp
     loadFolders()
     loadDocumentTypes()
     loadUsers()
+    loadProjectTypeDefinitions()
   }, [])
+
+  const loadProjectTypeDefinitions = async () => {
+    try {
+      const response = await api.get('/admin/project-types')
+      setProjectTypeDefinitions(response.data || [])
+    } catch (error) {
+      console.error('Failed to load project type definitions:', error)
+    }
+  }
+
+  const applyProjectTypeDefinition = (typeId: string) => {
+    const def = projectTypeDefinitions.find((t) => t.id === typeId)
+    if (!def) return
+    setBasicInfo((prev) => ({
+      ...prev,
+      project_type_definition_id: typeId,
+      project_category: def.category || 'DEVELOPMENT',
+      project_type: def.code === 'IT_DEV' ? 'IT' : def.code === 'RPA' ? 'RPA' : def.code === 'INFRA' ? 'INFRA' : prev.project_type,
+    }))
+    if (def.default_compliance_settings_json) {
+      setComplianceSettings(def.default_compliance_settings_json)
+      setSkipCompliance(false)
+    }
+    if (def.default_required_document_types_json?.length) {
+      setProjectDocumentTypes(def.default_required_document_types_json)
+      setSkipDocumentTypes(false)
+    }
+  }
 
   const loadFolders = async () => {
     try {
@@ -362,6 +394,8 @@ const ProjectSetupWizard: React.FC<ProjectSetupWizardProps> = ({ project, onComp
     const { tech_stack, ...restBasic } = basicInfo
     const projectData: any = {
       ...restBasic,
+      project_category: basicInfo.project_category,
+      project_type_definition_id: basicInfo.project_type_definition_id || null,
       tech_stack_json: techItems,
       required_document_types_json: skipDocumentTypes ? null : projectDocumentTypes,
       retention_policy_json: skipRetention ? null : retentionPolicy,
@@ -668,6 +702,38 @@ const ProjectSetupWizard: React.FC<ProjectSetupWizardProps> = ({ project, onComp
                   placeholder="e.g., New Product Development"
                   required
                 />
+              </div>
+
+              <div className="form-group">
+                <label>Kategoria projektu</label>
+                <select
+                  value={basicInfo.project_category}
+                  onChange={(e) => setBasicInfo({ ...basicInfo, project_category: e.target.value, project_type_definition_id: '' })}
+                >
+                  <option value="DEVELOPMENT">Development (SDLC)</option>
+                  <option value="COMPLIANCE">Compliance & Security</option>
+                </select>
+                <small>Compliance — ISO, SOC2, SOX, HIPAA, AI Act; Development — PDD, SDD, release</small>
+              </div>
+
+              <div className="form-group">
+                <label>Typ projektu (z panelu admin)</label>
+                <select
+                  value={basicInfo.project_type_definition_id}
+                  onChange={(e) => {
+                    const id = e.target.value
+                    setBasicInfo({ ...basicInfo, project_type_definition_id: id })
+                    if (id) applyProjectTypeDefinition(id)
+                  }}
+                >
+                  <option value="">— Wybierz typ (opcjonalnie) —</option>
+                  {projectTypeDefinitions
+                    .filter((t) => t.category === basicInfo.project_category)
+                    .map((t) => (
+                      <option key={t.id} value={t.id}>{t.name} ({t.code})</option>
+                    ))}
+                </select>
+                <small>Automatycznie ustawia wymagane dokumenty, compliance i frameworki kontrolek</small>
               </div>
 
               <div className="form-group">

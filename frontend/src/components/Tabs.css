@@ -195,6 +195,34 @@
   color: #383d41;
 }
 
+.task-owner-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.task-owner-name {
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.task-owner-you {
+  color: #3498db;
+  font-weight: 600;
+}
+
+.task-owner-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.badge-raci {
+  background: #dbeafe;
+  color: #1e40af;
+  text-transform: none;
+}
+
 .empty-state {
   text-align: center;
   padding: 3rem;

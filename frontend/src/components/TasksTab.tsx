@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import api from '../services/api'
+import { useAuth } from '../contexts/AuthContext'
 import './Tabs.css'
 
 interface User {
@@ -29,6 +30,7 @@ interface Task {
   completed_at?: string
   verified_at?: string
   is_blocking: boolean
+  can_execute?: boolean
 }
 
 interface RACIData {
@@ -46,6 +48,7 @@ interface TasksTabProps {
 }
 
 const TasksTab = ({ projectId }: TasksTabProps) => {
+  const { user } = useAuth()
   const [tasks, setTasks] = useState<Task[]>([])
   const [users, setUsers] = useState<User[]>([])
   const [raciData, setRaciData] = useState<RACIData | null>(null)
@@ -320,6 +323,83 @@ const TasksTab = ({ projectId }: TasksTabProps) => {
       console.error('Failed to review task:', error)
       alert(error.response?.data?.detail || 'Failed to review task')
     }
+  }
+
+  const handleStartTask = async (taskId: string) => {
+    try {
+      await api.post(`/projects/${projectId}/tasks/${taskId}/start`)
+      await loadTasks()
+    } catch (error: any) {
+      console.error('Failed to start task:', error)
+      alert(error.response?.data?.detail || 'Failed to start task')
+    }
+  }
+
+  const handleCompleteTask = async (taskId: string) => {
+    if (!confirm('Mark this task as completed?')) {
+      return
+    }
+
+    try {
+      await api.post(`/projects/${projectId}/tasks/${taskId}/complete`)
+      await loadTasks()
+    } catch (error: any) {
+      console.error('Failed to complete task:', error)
+      alert(error.response?.data?.detail || 'Failed to complete task')
+    }
+  }
+
+  const getRaciValue = (task: Task): string | null => {
+    if (task.title.endsWith(' Approval') || task.task_type === 'APPROVAL') return 'A'
+    if (task.title.endsWith(' Review') || task.task_type === 'REVIEW') return 'C'
+    if (task.title.endsWith(' Creation') || task.task_type === 'DEVELOPMENT') return 'R'
+    return null
+  }
+
+  const canUserExecuteTask = (task: Task): boolean => {
+    if (task.can_execute !== undefined) {
+      return task.can_execute
+    }
+    if (!user) return false
+    if (task.assigned_to_user_id && task.assigned_to_user_id === user.id) return true
+    return false
+  }
+
+  const renderOwnerCell = (task: Task) => {
+    const raciValue = getRaciValue(task)
+    const isCurrentUser =
+      user &&
+      (task.assigned_to_user_id === user.id ||
+        (task.can_execute && !task.assigned_to_user_id))
+
+    return (
+      <div className="task-owner-cell">
+        <div className="task-owner-name">
+          {task.assigned_to_name ? (
+            <>
+              {task.assigned_to_name}
+              {isCurrentUser && <span className="task-owner-you"> (You)</span>}
+            </>
+          ) : task.required_role ? (
+            <span className="text-muted">Role: {task.required_role}</span>
+          ) : (
+            <span className="text-muted">Unassigned</span>
+          )}
+        </div>
+        {(task.required_role || raciValue) && (
+          <div className="task-owner-meta">
+            {task.required_role && (
+              <span className="badge badge-secondary">{task.required_role}</span>
+            )}
+            {raciValue && (
+              <span className="badge badge-raci" title="RACI responsibility">
+                {raciValue === 'R' ? 'Responsible' : raciValue === 'A' ? 'Accountable' : raciValue === 'C' ? 'Consulted' : raciValue}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    )
   }
 
   const handleFixExistingTasks = async () => {
@@ -842,7 +922,7 @@ const TasksTab = ({ projectId }: TasksTabProps) => {
               <th>Title</th>
               <th>Stage/Task</th>
               <th>Type</th>
-              <th>Assigned To</th>
+              <th>Owner</th>
               <th>Status</th>
               <th>Estimated Time</th>
               <th>Due Date</th>
@@ -878,9 +958,7 @@ const TasksTab = ({ projectId }: TasksTabProps) => {
                   <td>
                     <span className="badge">{task.task_type}</span>
                   </td>
-                  <td>
-                    {task.assigned_to_name || <span className="text-muted">Unassigned</span>}
-                  </td>
+                  <td>{renderOwnerCell(task)}</td>
                   <td>
                     <span
                       className="badge"
@@ -897,6 +975,25 @@ const TasksTab = ({ projectId }: TasksTabProps) => {
                   </td>
                   <td>
                     <div className="action-buttons">
+                      {canUserExecuteTask(task) && task.status === 'OPEN' && (
+                        <button
+                          className="btn btn-sm btn-primary"
+                          onClick={() => handleStartTask(task.id)}
+                          title="Start working on this task"
+                        >
+                          ▶ Start
+                        </button>
+                      )}
+                      {canUserExecuteTask(task) &&
+                        (task.status === 'OPEN' || task.status === 'IN_PROGRESS') && (
+                          <button
+                            className="btn btn-sm btn-primary"
+                            onClick={() => handleCompleteTask(task.id)}
+                            title="Mark task as completed"
+                          >
+                            ✓ Complete
+                          </button>
+                        )}
                       <button
                         className="btn btn-sm btn-secondary"
                         onClick={() => handleEdit(task)}
