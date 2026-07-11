@@ -243,9 +243,17 @@ def create_project(
         folder_id=folder_id,
         key=payload.key,
         name=payload.name,
+        description=payload.description,
+        project_type=payload.project_type or "IT",
         status=payload.status or "ACTIVE",
         retention_policy_json=payload.retention_policy_json,
-        raci_matrix_json=raci_matrix_json
+        approval_policies_json=payload.approval_policies_json,
+        escalation_chain_json=payload.escalation_chain_json,
+        compliance_settings_json=payload.compliance_settings_json,
+        required_document_types_json=payload.required_document_types_json,
+        enable_4_eyes_principal=bool(payload.enable_4_eyes_principal),
+        tech_stack_json=payload.tech_stack_json,
+        raci_matrix_json=raci_matrix_json,
     )
     db.add(project)
     db.flush()  # Flush to get project.id
@@ -369,14 +377,30 @@ def update_project(
     # Update fields if provided
     if payload.name is not None:
         project.name = payload.name
+    if payload.description is not None:
+        project.description = payload.description
+    if payload.project_type is not None:
+        project.project_type = payload.project_type
     if payload.status is not None:
         project.status = payload.status
+    if payload.folder_id is not None:
+        project.folder_id = payload.folder_id
     if payload.retention_policy_json is not None:
         project.retention_policy_json = payload.retention_policy_json
+    if payload.approval_policies_json is not None:
+        project.approval_policies_json = payload.approval_policies_json
+    if payload.escalation_chain_json is not None:
+        project.escalation_chain_json = payload.escalation_chain_json
+    if payload.compliance_settings_json is not None:
+        project.compliance_settings_json = payload.compliance_settings_json
+    if payload.required_document_types_json is not None:
+        project.required_document_types_json = payload.required_document_types_json
+    if payload.enable_4_eyes_principal is not None:
+        project.enable_4_eyes_principal = payload.enable_4_eyes_principal
+    if payload.tech_stack_json is not None:
+        project.tech_stack_json = payload.tech_stack_json
     if payload.raci_matrix_json is not None:
         project.raci_matrix_json = payload.raci_matrix_json
-    # Note: approval_policies_json and escalation_chain_json may not be in model yet
-    # but we accept them in schema for future use
     db.commit()
     db.refresh(project)
     return project

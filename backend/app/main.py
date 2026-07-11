@@ -24,7 +24,7 @@ logger.info("✅ Models imported")
 from app.core.enums import RoleCode
 logger.info("✅ Enums imported")
 
-from app.routers import auth, projects, members, templates, documents, users, folders, document_types
+from app.routers import auth, projects, members, templates, documents, users, folders, document_types, dashboard
 logger.info("✅ Routers imported")
 
 app = FastAPI(title="DMS Governance API", version="0.1.0")
@@ -234,6 +234,7 @@ app.include_router(templates.router, prefix="/api/v1")
 app.include_router(documents.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(document_types.router, prefix="/api/v1")
+app.include_router(dashboard.router, prefix="/api/v1")
 
 
 @app.on_event("startup")
@@ -246,6 +247,19 @@ async def startup_event():
     import threading
     
     def init_db():
+        try:
+            logger.info("Running database migrations...")
+            print("STARTUP: Running alembic upgrade head...")
+            from alembic.config import Config
+            from alembic import command
+
+            command.upgrade(Config("alembic.ini"), "head")
+            logger.info("Database migrations applied")
+            print("STARTUP: Migrations applied")
+        except Exception as e:
+            logger.warning(f"Alembic migration warning: {e}")
+            print(f"STARTUP: Migration warning: {e}")
+
         try:
             logger.info("Starting database initialization...")
             print("STARTUP: Creating database tables...")

@@ -27,22 +27,27 @@ const Layout = ({ children }: LayoutProps) => {
         </div>
         <nav className="sidebar-nav">
           <Link 
+            to="/dashboard" 
+            className={`nav-item ${isActive('/dashboard') ? 'active' : ''}`}
+          >
+            📊 IT Dashboard
+          </Link>
+          <Link 
+            to="/projects" 
+            className={`nav-item ${isActive('/projects') && !location.pathname.match(/^\/projects\/[^/]+$/) ? 'active' : ''}`}
+          >
+            📁 Projekty IT
+          </Link>
+          <Link 
             to="/templates" 
             className={`nav-item ${isActive('/templates') ? 'active' : ''}`}
           >
             📄 Templates
           </Link>
           <div className="nav-separator"></div>
-          {isActive('/projects') && !isActive('/templates') ? (
+          {isActive('/projects') && location.pathname.match(/^\/projects\/[^/]+$/) ? (
             <FolderTree />
-          ) : (
-            <Link 
-              to="/projects" 
-              className={`nav-item ${isActive('/projects') && !isActive('/templates') ? 'active' : ''}`}
-            >
-              📁 Projects
-            </Link>
-          )}
+          ) : null}
         </nav>
         <div className="sidebar-footer">
           <div className="user-info">

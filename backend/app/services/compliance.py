@@ -9,11 +9,15 @@ from enum import Enum
 
 class ComplianceStandard(str, Enum):
     """Compliance standards supported by the system."""
-    HIPAA = "HIPAA"  # Health Insurance Portability and Accountability Act
-    GxP = "GxP"      # Good Practice guidelines (GMP, GLP, GCP, etc.)
-    GIS = "GIS"      # General Information Security
-    SOC2 = "SOC2"    # System and Organization Controls 2
-    ISO27001 = "ISO27001"  # Information Security Management
+    HIPAA = "HIPAA"
+    GxP = "GxP"
+    GIS = "GIS"
+    SOC2 = "SOC2"
+    SOX = "SOX"
+    ISO27001 = "ISO27001"
+    ISO42001 = "ISO42001"
+    KNF = "KNF"
+    EU_AI_ACT = "EU_AI_ACT"
 
 
 # Compliance mapping configuration
@@ -45,6 +49,37 @@ COMPLIANCE_MAPPING = {
     # Generic/Other (default to GIS only)
     "OTHER": {ComplianceStandard.GIS},
 }
+
+
+# Project-level compliance flags (from ProjectSetupWizard) → active standards
+_PROJECT_COMPLIANCE_KEYS = {
+    "hipaa": ComplianceStandard.HIPAA,
+    "gxp": ComplianceStandard.GxP,
+    "gisc": ComplianceStandard.GIS,
+    "gis": ComplianceStandard.GIS,
+    "soc2": ComplianceStandard.SOC2,
+    "sox": ComplianceStandard.SOX,
+    "iso27001": ComplianceStandard.ISO27001,
+    "iso42001": ComplianceStandard.ISO42001,
+    "knf": ComplianceStandard.KNF,
+    "eu_ai_act": ComplianceStandard.EU_AI_ACT,
+    "ai_act": ComplianceStandard.EU_AI_ACT,
+}
+
+
+def get_active_compliance_standards(compliance_settings: dict | None) -> List[str]:
+    """Return list of enabled compliance standards from project settings JSON."""
+    if not compliance_settings:
+        return [ComplianceStandard.GIS.value]
+    active: Set[ComplianceStandard] = set()
+    for key, standard in _PROJECT_COMPLIANCE_KEYS.items():
+        if compliance_settings.get(key):
+            active.add(standard)
+    if not active:
+        return [ComplianceStandard.GIS.value]
+    if ComplianceStandard.GIS not in active:
+        active.add(ComplianceStandard.GIS)
+    return sorted(s.value for s in active)
 
 
 def get_compliance_standards(doc_type: str, include_default: bool = True) -> List[str]:

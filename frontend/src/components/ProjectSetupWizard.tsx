@@ -49,9 +49,12 @@ const ProjectSetupWizard: React.FC<ProjectSetupWizardProps> = ({ project, onComp
   const [basicInfo, setBasicInfo] = useState({
     key: project?.key || '',
     name: project?.name || '',
+    description: project?.description || '',
+    project_type: project?.project_type || 'IT',
     status: project?.status || 'ACTIVE',
     folder_id: project?.folder_id || '',
-    enable_4_eyes_principal: project?.enable_4_eyes_principal || false
+    enable_4_eyes_principal: project?.enable_4_eyes_principal || false,
+    tech_stack: (project?.tech_stack_json || []).join(', '),
   })
   
   // Invited users (for team members to invite)
@@ -93,7 +96,12 @@ const ProjectSetupWizard: React.FC<ProjectSetupWizardProps> = ({ project, onComp
     hipaa: false,
     sox: false,
     gxp: false,
-    gisc: false
+    gisc: false,
+    iso27001: false,
+    soc2: false,
+    iso42001: false,
+    knf: false,
+    eu_ai_act: false,
   })
   const [skipCompliance, setSkipCompliance] = useState(false)
   const [showComplianceModal, setShowComplianceModal] = useState<string | null>(null) // 'hipaa', 'sox', 'gxp', 'gisc'
@@ -348,8 +356,13 @@ const ProjectSetupWizard: React.FC<ProjectSetupWizardProps> = ({ project, onComp
   }
 
   const handleFinish = () => {
+    const techItems = basicInfo.tech_stack
+      ? basicInfo.tech_stack.split(',').map((s: string) => s.trim()).filter(Boolean)
+      : null
+    const { tech_stack, ...restBasic } = basicInfo
     const projectData: any = {
-      ...basicInfo,
+      ...restBasic,
+      tech_stack_json: techItems,
       required_document_types_json: skipDocumentTypes ? null : projectDocumentTypes,
       retention_policy_json: skipRetention ? null : retentionPolicy,
       approval_policies_json: skipApproval ? null : approvalPolicies,
@@ -655,6 +668,42 @@ const ProjectSetupWizard: React.FC<ProjectSetupWizardProps> = ({ project, onComp
                   placeholder="e.g., New Product Development"
                   required
                 />
+              </div>
+
+              <div className="form-group">
+                <label>Typ projektu IT</label>
+                <select
+                  value={basicInfo.project_type}
+                  onChange={(e) => setBasicInfo({ ...basicInfo, project_type: e.target.value })}
+                >
+                  <option value="IT">IT — ogólny</option>
+                  <option value="RPA">RPA / Automation</option>
+                  <option value="INFRA">Infrastruktura</option>
+                  <option value="DATA">Data / Analytics</option>
+                  <option value="SECURITY">Security</option>
+                  <option value="INTEGRATION">Integracja systemów</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Opis</label>
+                <textarea
+                  value={basicInfo.description}
+                  onChange={(e) => setBasicInfo({ ...basicInfo, description: e.target.value })}
+                  placeholder="Krótki opis celu i zakresu projektu IT"
+                  rows={3}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Tech stack (opcjonalnie)</label>
+                <input
+                  type="text"
+                  value={basicInfo.tech_stack}
+                  onChange={(e) => setBasicInfo({ ...basicInfo, tech_stack: e.target.value })}
+                  placeholder="np. Azure, .NET, React, PostgreSQL"
+                />
+                <small>Technologie oddzielone przecinkami — widoczne na IT Dashboard</small>
               </div>
 
               <div className="form-group">
@@ -1298,6 +1347,27 @@ const ProjectSetupWizard: React.FC<ProjectSetupWizardProps> = ({ project, onComp
                       </div>
                     </div>
                   </div>
+
+                  {[
+                    { key: 'iso27001', label: 'ISO/IEC 27001', desc: 'Information Security Management — popularna norma IT/bezpieczeństwa' },
+                    { key: 'soc2', label: 'SOC 2', desc: 'Trust Services Criteria — audyty SaaS/cloud' },
+                    { key: 'iso42001', label: 'ISO/IEC 42001 + AI Act', desc: 'Zarządzanie systemami AI i zgodność z EU AI Act' },
+                    { key: 'knf', label: 'KNF / DORA', desc: 'Sektor finansowy PL — cyberbezpieczeństwo i odporność operacyjna' },
+                    { key: 'eu_ai_act', label: 'EU AI Act', desc: 'Wymagania regulacyjne dla systemów AI wysokiego ryzyka' },
+                  ].map(({ key, label, desc }) => (
+                    <div key={key} style={{ display: 'flex', alignItems: 'flex-start', padding: '0.75rem', border: '1px solid #e0e0e0', borderRadius: '4px' }}>
+                      <input
+                        type="checkbox"
+                        checked={complianceSettings[key] || false}
+                        onChange={(e) => setComplianceSettings({ ...complianceSettings, [key]: e.target.checked })}
+                        style={{ marginRight: '0.75rem', marginTop: '0.25rem', width: '18px', height: '18px', cursor: 'pointer' }}
+                      />
+                      <div style={{ flex: 1 }}>
+                        <strong style={{ fontSize: '1rem' }}>{label}</strong>
+                        <div style={{ fontSize: '0.85rem', color: '#666', marginTop: '0.25rem' }}>{desc}</div>
+                      </div>
+                    </div>
+                  ))}
 
                   <div style={{ display: 'flex', alignItems: 'flex-start', padding: '0.75rem', border: '1px solid #e0e0e0', borderRadius: '4px' }}>
                     <input

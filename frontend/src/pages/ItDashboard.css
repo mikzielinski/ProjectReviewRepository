@@ -1,0 +1,29 @@
+.it-dashboard { max-width: 1200px; }
+.it-dash-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
+.it-dash-sub { color: #64748b; margin: 0.25rem 0 0; }
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
+.kpi-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; display: flex; flex-direction: column; }
+.kpi-card.warn { border-color: #fcd34d; background: #fffbeb; }
+.kpi-value { font-size: 1.75rem; font-weight: 700; color: #0f172a; }
+.kpi-label { font-size: 0.8rem; color: #64748b; margin-top: 0.25rem; }
+.it-projects-table.card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; }
+.it-projects-table table { width: 100%; border-collapse: collapse; }
+.it-projects-table th, .it-projects-table td { padding: 0.65rem 0.5rem; border-bottom: 1px solid #f1f5f9; text-align: left; font-size: 0.9rem; }
+.it-projects-table tr.clickable { cursor: pointer; }
+.it-projects-table tr.clickable:hover { background: #f8fafc; }
+.sub { font-size: 0.8rem; color: #64748b; }
+.type-badge { background: #e0e7ff; color: #3730a3; padding: 0.15rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+.score { font-weight: 700; }
+.score.good { color: #059669; }
+.score.mid { color: #d97706; }
+.score.low { color: #dc2626; }
+.pill { display: inline-block; margin-left: 0.35rem; font-size: 0.7rem; padding: 0.1rem 0.35rem; border-radius: 4px; }
+.pill.review { background: #dbeafe; color: #1d4ed8; }
+.pill.gap { background: #fee2e2; color: #b91c1c; }
+.pill.overdue { background: #fef3c7; color: #92400e; }
+.compliance-tags { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.compliance-tag { background: #f1f5f9; color: #334155; font-size: 0.68rem; padding: 0.1rem 0.35rem; border-radius: 4px; }
+.stack { color: #64748b; font-size: 0.8rem; }
+.btn-primary { background: #2563eb; color: #fff; border: 0; padding: 0.55rem 1rem; border-radius: 8px; cursor: pointer; }
+.it-dash-loading, .it-dash-error, .empty { padding: 2rem; color: #64748b; }
+.it-dash-error { color: #dc2626; }
