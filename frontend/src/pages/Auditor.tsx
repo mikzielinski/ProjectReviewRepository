@@ -339,6 +339,18 @@ export default function Auditor() {
         <ControlDetailPanel
           projectId={selectedControl.project_id}
           assignmentId={selectedControl.assignment_id}
+          listPreview={{
+            control_ref: selectedControl.control_ref,
+            control_title: selectedControl.control_title,
+            framework_code: selectedControl.framework_code,
+            domain: selectedControl.domain,
+            control_owner_name: selectedControl.control_owner_name,
+            assignee_name: selectedControl.assignee_name,
+            status: selectedControl.status,
+            next_review_at: selectedControl.next_review_at,
+            last_tested_at: selectedControl.last_tested_at,
+            is_applicable: true,
+          }}
           readOnly
           onClose={() => setSelectedControl(null)}
         />

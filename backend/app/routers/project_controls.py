@@ -277,6 +277,7 @@ def get_project_control(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_active_user),
 ):
+    """Return full control assignment detail (library metadata + project status)."""
     _require_project_access(db, project_id, current_user.id)
     row = _get_assignment_or_404(db, project_id, assignment_id)
     return _serialize_assignment_detail(db, row)

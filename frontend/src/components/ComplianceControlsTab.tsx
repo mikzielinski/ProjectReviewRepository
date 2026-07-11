@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import api from '../services/api'
 import { getAuditActionLabel } from '../utils/auditLabels'
-import ControlDetailPanel from './ControlDetailPanel'
+import ControlDetailPanel, { type ControlListPreview } from './ControlDetailPanel'
 import './ComplianceControlsTab.css'
 
 interface UserOption {
@@ -123,6 +123,25 @@ export default function ComplianceControlsTab({ projectId, initialSubTab }: Prop
   }
 
   const openDetail = (id: string) => setSelectedId(id)
+
+  const getAssignmentPreview = (id: string): ControlListPreview | undefined => {
+    const fromList = assignments.find((a) => a.id === id)
+    if (fromList) return fromList
+
+    const fromSchedule = schedule.find((s) => s.assignment_id === id)
+    if (!fromSchedule) return undefined
+
+    return {
+      control_ref: fromSchedule.control_ref,
+      control_title: fromSchedule.control_title,
+      framework_code: fromSchedule.framework_code,
+      control_owner_name: fromSchedule.control_owner_name,
+      assignee_name: fromSchedule.assignee_name,
+      status: fromSchedule.status,
+      next_review_at: fromSchedule.next_review_at,
+      is_applicable: true,
+    }
+  }
 
   if (loading) return <p>Loading controls…</p>
 
@@ -267,6 +286,7 @@ export default function ComplianceControlsTab({ projectId, initialSubTab }: Prop
         <ControlDetailPanel
           projectId={projectId}
           assignmentId={selectedId}
+          listPreview={getAssignmentPreview(selectedId)}
           onClose={() => setSelectedId(null)}
           onUpdated={load}
         />

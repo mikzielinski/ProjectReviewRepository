@@ -132,28 +132,55 @@ export default function ControlDetailPanel({
   const load = async () => {
     setLoading(true)
     setError(null)
-    try {
-      const [detailRes, runsRes] = await Promise.all([
-        api.get<ControlDetail>(`/projects/${projectId}/controls/${assignmentId}`),
-        api.get<ControlTestRun[]>(`/projects/${projectId}/controls/${assignmentId}/run-history`),
-      ])
-      setDetail(detailRes.data)
-      setRuns(runsRes.data || [])
-      setNotes(detailRes.data.implementation_notes || '')
+    setNotice(null)
+    let detailData: ControlDetail | null = null
+    let usedFallback = false
 
-      if (!readOnly) {
-        const usersRes = await api.get<UserOption[]>('/users').catch(() => ({ data: [] as UserOption[] }))
-        setUsers(usersRes.data || [])
-      }
+    try {
+      const detailRes = await api.get<ControlDetail>(`/projects/${projectId}/controls/${assignmentId}`)
+      detailData = detailRes.data
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
-      setError(msg || 'Failed to load control details')
-    } finally {
-      setLoading(false)
+      if (listPreview && isDetailUnavailable(err)) {
+        detailData = buildDetailFromPreview(projectId, assignmentId, listPreview)
+        usedFallback = true
+      } else {
+        const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
+        setError(typeof msg === 'string' ? msg : 'Failed to load control details')
+      }
     }
+
+    if (!detailData && listPreview) {
+      detailData = buildDetailFromPreview(projectId, assignmentId, listPreview)
+      usedFallback = true
+    }
+
+    if (detailData) {
+      setDetail(detailData)
+      setNotes(detailData.implementation_notes || '')
+    } else {
+      setDetail(null)
+    }
+
+    try {
+      const runsRes = await api.get<ControlTestRun[]>(`/projects/${projectId}/controls/${assignmentId}/run-history`)
+      setRuns(runsRes.data || [])
+    } catch {
+      setRuns([])
+    }
+
+    if (usedFallback) {
+      setNotice('Full control details are temporarily unavailable. Showing list data — library description and test history will appear after the API is deployed.')
+    }
+
+    if (!readOnly) {
+      const usersRes = await api.get<UserOption[]>('/users').catch(() => ({ data: [] as UserOption[] }))
+      setUsers(usersRes.data || [])
+    }
+
+    setLoading(false)
   }
 
-  useEffect(() => { load() }, [projectId, assignmentId])
+  useEffect(() => { load() }, [projectId, assignmentId, listPreview])
 
   const savePatch = async (patch: Record<string, unknown>) => {
     setSaving(true)
@@ -200,14 +227,28 @@ export default function ControlDetailPanel({
     )
   }
 
+  if (!detail) {
+    return (
+      <div className="cdp-overlay" onClick={onClose}>
+        <div className="cdp-panel" onClick={(e) => e.stopPropagation()}>
+          <header className="cdp-header">
+            <h3>Control details</h3>
+            <button className="cdp-close" onClick={onClose} aria-label="Close">✕</button>
+          </header>
+          {error && <div className="cdp-error">{error}</div>}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="cdp-overlay" onClick={onClose}>
       <div className="cdp-panel" onClick={(e) => e.stopPropagation()}>
         <header className="cdp-header">
           <div>
-            <code className="cdp-ref">{detail?.control_ref}</code>
-            <h3>{detail?.control_title}</h3>
-            {detail?.framework_code && (
+            <code className="cdp-ref">{detail.control_ref}</code>
+            <h3>{detail.control_title}</h3>
+            {detail.framework_code && (
               <span className="cdp-framework">{detail.framework_code}</span>
             )}
           </div>
