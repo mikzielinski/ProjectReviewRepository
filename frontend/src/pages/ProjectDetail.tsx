@@ -204,7 +204,7 @@ const ProjectDetail = () => {
               className={`tab ${activeTab === 'compliance' ? 'active' : ''}`}
               onClick={() => setActiveTab('compliance')}
             >
-              🛡️ Kontrolki & Audit
+              🛡️ Controls & Audit
             </button>
           )}
         </div>

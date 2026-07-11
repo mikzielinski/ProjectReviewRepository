@@ -43,6 +43,44 @@ class AuditAction:
     LOGOUT = "LOGOUT"
 
 
+def action_label(action: str) -> str:
+    """Human-readable English label for an audit action code."""
+    labels = {
+        AuditAction.DOCUMENT_CREATE: "Document created",
+        AuditAction.DOCUMENT_UPDATE: "Document updated",
+        AuditAction.DOCUMENT_DELETE: "Document deleted",
+        AuditAction.DOCUMENT_VIEW: "Document viewed",
+        AuditAction.VERSION_CREATE: "Version created",
+        AuditAction.VERSION_UPDATE: "Version updated",
+        AuditAction.VERSION_SUBMIT: "Version submitted",
+        AuditAction.VERSION_APPROVE: "Version approved",
+        AuditAction.VERSION_REJECT: "Version rejected",
+        AuditAction.TEMPLATE_CREATE: "Template created",
+        AuditAction.TEMPLATE_UPDATE: "Template updated",
+        AuditAction.TEMPLATE_DELETE: "Template deleted",
+        AuditAction.TEMPLATE_APPROVE: "Template approved",
+        AuditAction.TEMPLATE_VIEW: "Template viewed",
+        AuditAction.PROJECT_CREATE: "Project created",
+        AuditAction.PROJECT_UPDATE: "Project updated",
+        AuditAction.PROJECT_DELETE: "Project deleted",
+        AuditAction.MEMBER_INVITE: "Member invited",
+        AuditAction.MEMBER_UPDATE: "Member updated",
+        AuditAction.MEMBER_REMOVE: "Member removed",
+        AuditAction.TASK_CREATE: "Task created",
+        AuditAction.TASK_UPDATE: "Task updated",
+        AuditAction.TASK_COMPLETE: "Task completed",
+        AuditAction.CONTROL_SYNC: "Controls synchronized",
+        AuditAction.CONTROL_TEST: "Control tested",
+        AuditAction.EVIDENCE_UPLOAD: "Evidence uploaded",
+        AuditAction.LOGIN: "Login",
+        AuditAction.LOGOUT: "Logout",
+        "DOCUMENT_CREATED": "Document created",
+    }
+    if action in labels:
+        return labels[action]
+    return action.replace("_", " ").title()
+
+
 def log_action(
     db: Session,
     actor_user_id: UUID,

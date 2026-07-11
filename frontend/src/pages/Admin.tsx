@@ -9,20 +9,20 @@ function formatAdminError(err: unknown, context: string): string {
     const status = err.response?.status
     const detail = err.response?.data?.detail
     if (status === 404) {
-      return 'Endpoint administracyjny nie istnieje (404). Backend wymaga wdrożenia najnowszej wersji z routerem admin.'
+      return 'Admin endpoint not found (404). Backend requires the latest version with the admin router.'
     }
     if (!err.response) {
       if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
-        return 'Przekroczono czas oczekiwania — backend na Renderze może się budzić. Spróbuj ponownie za ~30 s.'
+        return 'Request timed out — the backend on Render may be waking up. Try again in ~30 s.'
       }
-      return `Błąd sieci — nie można połączyć z API (${context}).`
+      return `Network error — cannot connect to API (${context}).`
     }
     if (typeof detail === 'string') return detail
-    if (status === 401) return 'Sesja wygasła — zaloguj się ponownie.'
-    if (status === 403) return 'Brak uprawnień do panelu administracyjnego.'
-    return `Błąd API (${status ?? '?'}): ${context}.`
+    if (status === 401) return 'Session expired — please log in again.'
+    if (status === 403) return 'You do not have permission to access the admin panel.'
+    return `API error (${status ?? '?'}): ${context}.`
   }
-  return `Nie udało się załadować: ${context}.`
+  return `Failed to load: ${context}.`
 }
 
 interface ProjectType {
@@ -77,7 +77,7 @@ export default function Admin() {
       setProjectTypes(typesRes.data || [])
       setFrameworks(fwRes.data || [])
     } catch (err) {
-      setError(formatAdminError(err, 'dane administracyjne'))
+      setError(formatAdminError(err, 'admin data'))
     } finally {
       setLoading(false)
     }
@@ -90,7 +90,7 @@ export default function Admin() {
       setControls(res.data || [])
       setError(null)
     } catch (err) {
-      setError(formatAdminError(err, 'biblioteka kontrolek'))
+      setError(formatAdminError(err, 'controls library'))
     }
   }
 
@@ -104,32 +104,32 @@ export default function Admin() {
       <div className="admin-page">
         <header className="admin-header">
           <div>
-            <h1>Panel administracyjny</h1>
-            <p>Typy projektów (dev vs compliance) i biblioteka kontrolek regulacyjnych</p>
+            <h1>Admin Panel</h1>
+            <p>Project types (dev vs compliance) and regulatory controls library</p>
           </div>
         </header>
 
         <div className="admin-tabs">
           <button className={tab === 'types' ? 'active' : ''} onClick={() => setTab('types')}>
-            Typy projektów
+            Project types
           </button>
           <button className={tab === 'controls' ? 'active' : ''} onClick={() => setTab('controls')}>
-            Biblioteka kontrolek
+            Controls library
           </button>
         </div>
 
         {loading ? (
-          <p>Ładowanie…</p>
+          <p>Loading…</p>
         ) : error ? (
           <p className="admin-error">{error}</p>
         ) : tab === 'types' ? (
           <section className="card admin-section">
-            <h2>Typy projektów</h2>
+            <h2>Project types</h2>
             <p className="hint">
-              Projekty developerskie (SDLC) vs compliance/security — każdy typ definiuje wymagane dokumenty, szablony i frameworki kontrolek.
+              Development (SDLC) vs compliance/security projects — each type defines required documents, templates, and control frameworks.
             </p>
             {projectTypes.length === 0 ? (
-              <p className="hint">Brak zdefiniowanych typów projektów.</p>
+              <p className="hint">No project types defined.</p>
             ) : (
             <div className="type-grid">
               {projectTypes.map((t) => (
@@ -151,7 +151,7 @@ export default function Admin() {
                   ) : null}
                   {t.default_required_document_types_json?.length ? (
                     <p className="meta">
-                      Dokumenty: {t.default_required_document_types_json.map((d) => d.document_type_code).join(', ')}
+                      Documents: {t.default_required_document_types_json.map((d) => d.document_type_code).join(', ')}
                     </p>
                   ) : null}
                 </article>
@@ -162,9 +162,9 @@ export default function Admin() {
         ) : (
           <section className="card admin-section">
             <div className="controls-toolbar">
-              <h2>Biblioteka kontrolek</h2>
+              <h2>Controls library</h2>
               <select value={frameworkFilter} onChange={(e) => setFrameworkFilter(e.target.value)}>
-                <option value="">Wszystkie frameworki</option>
+                <option value="">All frameworks</option>
                 {frameworks.map((fw) => (
                   <option key={fw.id} value={fw.code}>{fw.code} — {fw.name} ({fw.control_count})</option>
                 ))}
@@ -174,7 +174,7 @@ export default function Admin() {
               {frameworks.map((fw) => (
                 <div key={fw.id} className="fw-chip" onClick={() => setFrameworkFilter(fw.code)}>
                   <strong>{fw.code}</strong>
-                  <span>{fw.control_count} kontrolek</span>
+                  <span>{fw.control_count} controls</span>
                 </div>
               ))}
             </div>
@@ -182,17 +182,17 @@ export default function Admin() {
               <thead>
                 <tr>
                   <th>Ref</th>
-                  <th>Tytuł</th>
+                  <th>Title</th>
                   <th>Framework</th>
-                  <th>Domena</th>
-                  <th>Typ</th>
-                  <th>Częstotliwość testu</th>
+                  <th>Domain</th>
+                  <th>Type</th>
+                  <th>Test frequency</th>
                 </tr>
               </thead>
               <tbody>
                 {controls.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="empty-cell">Brak kontrolek dla wybranego filtra.</td>
+                    <td colSpan={6} className="empty-cell">No controls for the selected filter.</td>
                   </tr>
                 ) : controls.flatMap((c) => {
                   const rows: JSX.Element[] = []

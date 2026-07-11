@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import Layout from '../components/Layout'
 import ControlDetailPanel from '../components/ControlDetailPanel'
 import api from '../services/api'
+import { getAuditActionLabel } from '../utils/auditLabels'
 import './Auditor.css'
 
 interface Overview {
@@ -38,6 +39,7 @@ interface AuditEntry {
   project_key?: string
   project_name?: string
   action: string
+  action_label?: string
   entity_type: string
   actor_name?: string
   created_at?: string
@@ -94,9 +96,9 @@ export default function Auditor() {
       .then((results) => {
         const failed = results.filter((r) => r.status === 'rejected')
         if (failed.length === results.length) {
-          setLoadError('Nie udało się załadować danych portalu audytora. Sprawdź, czy backend jest wdrożony z endpointami /auditor/.')
+          setLoadError('Failed to load auditor portal data. Check that the backend is deployed with /auditor/ endpoints.')
         } else if (failed.length > 0) {
-          setLoadError('Część danych nie została załadowana.')
+          setLoadError('Some data could not be loaded.')
         }
         if (results[0].status === 'rejected') {
           setOverview(emptyOverview)
@@ -132,26 +134,26 @@ export default function Auditor() {
       <div className="auditor-page">
         <header className="auditor-header">
           <div>
-            <h1>Portal audytora</h1>
-            <p>Widok tylko do odczytu — audit trail, status testów kontrolek i luki compliance we wszystkich projektach</p>
+            <h1>Auditor Portal</h1>
+            <p>Read-only view — audit trail, control test status, and compliance gaps across all projects</p>
           </div>
           <div className="auditor-header-actions">
             <button className="btn-export" onClick={exportReport} disabled={exporting}>
-              {exporting ? 'Eksport…' : 'Eksportuj raport'}
+              {exporting ? 'Exporting…' : 'Export report'}
             </button>
-            <span className="read-only-badge">Tylko odczyt</span>
+            <span className="read-only-badge">Read only</span>
           </div>
         </header>
 
         <div className="auditor-tabs">
           <button className={tab === 'overview' ? 'active' : ''} onClick={() => setTab('overview')}>
-            Podsumowanie
+            Overview
           </button>
           <button className={tab === 'controls' ? 'active' : ''} onClick={() => setTab('controls')}>
-            Kontrolki
+            Controls
           </button>
           <button className={tab === 'gaps' ? 'active' : ''} onClick={() => setTab('gaps')}>
-            Luki compliance
+            Compliance gaps
             {overview && overview.gap_count > 0 && (
               <span className="tab-badge">{overview.gap_count}</span>
             )}
@@ -166,34 +168,34 @@ export default function Auditor() {
         )}
 
         {loading ? (
-          <p>Ładowanie…</p>
+          <p>Loading…</p>
         ) : tab === 'overview' ? (
           <section className="auditor-overview">
             <div className="stat-grid">
               <div className="stat-card">
                 <span className="stat-value">{(overview ?? emptyOverview).compliance_project_count}</span>
-                <span className="stat-label">Projekty compliance</span>
+                <span className="stat-label">Compliance projects</span>
               </div>
               <div className="stat-card">
                 <span className="stat-value">{(overview ?? emptyOverview).total_control_assignments}</span>
-                <span className="stat-label">Przypisane kontrolki</span>
+                <span className="stat-label">Assigned controls</span>
               </div>
               <div className="stat-card warn">
                 <span className="stat-value">{(overview ?? emptyOverview).gap_count}</span>
-                <span className="stat-label">Luki / do uzupełnienia</span>
+                <span className="stat-label">Gaps / to address</span>
               </div>
               <div className="stat-card alert">
                 <span className="stat-value">{(overview ?? emptyOverview).overdue_count}</span>
-                <span className="stat-label">Przeterminowane review</span>
+                <span className="stat-label">Overdue reviews</span>
               </div>
               <div className="stat-card ok">
                 <span className="stat-value">{(overview ?? emptyOverview).tested_count}</span>
-                <span className="stat-label">Przetestowane</span>
+                <span className="stat-label">Tested</span>
               </div>
             </div>
             {Object.keys((overview ?? emptyOverview).by_status).length > 0 && (
               <div className="card status-breakdown">
-                <h2>Status kontrolek</h2>
+                <h2>Control status</h2>
                 <div className="status-chips">
                   {Object.entries((overview ?? emptyOverview).by_status).map(([status, count]) => (
                     <div key={status} className="status-chip">
@@ -208,29 +210,29 @@ export default function Auditor() {
         ) : tab === 'controls' ? (
           <section className="card auditor-section">
             <div className="section-toolbar">
-              <h2>Status testów kontrolek</h2>
+              <h2>Control test status</h2>
               <label className="filter-check">
                 <input
                   type="checkbox"
                   checked={overdueOnly}
                   onChange={(e) => setOverdueOnly(e.target.checked)}
                 />
-                Tylko przeterminowane
+                Overdue only
               </label>
             </div>
             {controls.length === 0 ? (
-              <p className="empty-hint">Brak przypisanych kontrolek w dostępnych projektach.</p>
+              <p className="empty-hint">No assigned controls in accessible projects.</p>
             ) : (
               <table className="auditor-table">
                 <thead>
                   <tr>
-                    <th>Projekt</th>
+                    <th>Project</th>
                     <th>Ref</th>
-                    <th>Kontrolka</th>
+                    <th>Control</th>
                     <th>Framework</th>
                     <th>Owner</th>
                     <th>Status</th>
-                    <th>Nast. review</th>
+                    <th>Next review</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -262,20 +264,20 @@ export default function Auditor() {
           </section>
         ) : tab === 'gaps' ? (
           <section className="card auditor-section">
-            <h2>Luki compliance</h2>
-            <p className="hint">Kontrolki wymagające uwagi — nieukończone statusy lub przeterminowany harmonogram testów.</p>
+            <h2>Compliance gaps</h2>
+            <p className="hint">Controls requiring attention — incomplete statuses or overdue test schedule.</p>
             {gaps.length === 0 ? (
-              <p className="empty-hint">Brak wykrytych luk — wszystkie kontrolki są na bieżąco.</p>
+              <p className="empty-hint">No gaps detected — all controls are up to date.</p>
             ) : (
               <table className="auditor-table">
                 <thead>
                   <tr>
-                    <th>Projekt</th>
-                    <th>Kontrolka</th>
+                    <th>Project</th>
+                    <th>Control</th>
                     <th>Framework</th>
                     <th>Status</th>
-                    <th>Powód luki</th>
-                    <th>Termin review</th>
+                    <th>Gap reason</th>
+                    <th>Review due</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -303,15 +305,15 @@ export default function Auditor() {
           </section>
         ) : (
           <section className="card auditor-section">
-            <h2>Audit trail (wszystkie projekty)</h2>
+            <h2>Audit trail (all projects)</h2>
             {audit.length === 0 ? (
-              <p className="empty-hint">Brak wpisów audit trail.</p>
+              <p className="empty-hint">No audit trail entries.</p>
             ) : (
               <div className="audit-list">
                 {audit.map((entry) => (
                   <div key={entry.id} className="audit-row">
                     <div className="audit-meta">
-                      <strong>{entry.action}</strong>
+                      <strong>{entry.action_label || getAuditActionLabel(entry.action)}</strong>
                       <span>{entry.entity_type}</span>
                       {entry.project_key && (
                         entry.project_id ? (

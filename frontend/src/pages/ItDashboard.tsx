@@ -34,10 +34,10 @@ interface ItPortfolioDashboard {
 const PROJECT_TYPE_LABELS: Record<string, string> = {
   IT: 'IT',
   RPA: 'RPA / Automation',
-  INFRA: 'Infrastruktura',
+  INFRA: 'Infrastructure',
   DATA: 'Data / Analytics',
   SECURITY: 'Security',
-  INTEGRATION: 'Integracja',
+  INTEGRATION: 'Integration',
 }
 
 export default function ItDashboard() {
@@ -49,46 +49,46 @@ export default function ItDashboard() {
   useEffect(() => {
     api.get('/dashboard/it-portfolio')
       .then((r) => setData(r.data))
-      .catch((e) => setError(e.response?.data?.detail || 'Nie udało się załadować dashboardu'))
+      .catch((e) => setError(e.response?.data?.detail || 'Failed to load dashboard'))
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <Layout><div className="it-dash-loading">Ładowanie portfolio IT…</div></Layout>
+  if (loading) return <Layout><div className="it-dash-loading">Loading IT portfolio…</div></Layout>
   if (error) return <Layout><div className="it-dash-error">{error}</div></Layout>
-  if (!data) return <Layout><div>Brak danych</div></Layout>
+  if (!data) return <Layout><div>No data</div></Layout>
 
   return (
     <Layout>
       <div className="it-dashboard">
         <header className="it-dash-header">
           <div>
-            <h1>Portfolio projektów IT</h1>
-            <p className="it-dash-sub">Governance, dokumentacja SDLC i zgodność regulacyjna w jednym widoku.</p>
+            <h1>IT Project Portfolio</h1>
+            <p className="it-dash-sub">Governance, SDLC documentation, and regulatory compliance in one view.</p>
           </div>
-          <button className="btn-primary" onClick={() => navigate('/projects')}>+ Nowy projekt IT</button>
+          <button className="btn-primary" onClick={() => navigate('/projects')}>+ New IT project</button>
         </header>
 
         <section className="kpi-grid">
-          <div className="kpi-card"><span className="kpi-value">{data.total_projects}</span><span className="kpi-label">Projekty</span></div>
-          <div className="kpi-card"><span className="kpi-value">{data.active_projects}</span><span className="kpi-label">Aktywne</span></div>
-          <div className="kpi-card"><span className="kpi-value">{data.open_tasks}</span><span className="kpi-label">Otwarte zadania</span></div>
-          <div className="kpi-card"><span className="kpi-value">{data.documents_in_review}</span><span className="kpi-label">Dok. w review</span></div>
-          <div className="kpi-card warn"><span className="kpi-value">{data.compliance_gaps}</span><span className="kpi-label">Luki dokumentacji</span></div>
+          <div className="kpi-card"><span className="kpi-value">{data.total_projects}</span><span className="kpi-label">Projects</span></div>
+          <div className="kpi-card"><span className="kpi-value">{data.active_projects}</span><span className="kpi-label">Active</span></div>
+          <div className="kpi-card"><span className="kpi-value">{data.open_tasks}</span><span className="kpi-label">Open tasks</span></div>
+          <div className="kpi-card"><span className="kpi-value">{data.documents_in_review}</span><span className="kpi-label">Docs in review</span></div>
+          <div className="kpi-card warn"><span className="kpi-value">{data.compliance_gaps}</span><span className="kpi-label">Documentation gaps</span></div>
         </section>
 
         <section className="it-projects-table card">
-          <h2>Projekty IT</h2>
+          <h2>IT Projects</h2>
           {data.projects.length === 0 ? (
-            <p className="empty">Brak projektów. Utwórz pierwszy projekt IT z kreatora setupu.</p>
+            <p className="empty">No projects yet. Create your first IT project from the setup wizard.</p>
           ) : (
             <table>
               <thead>
                 <tr>
-                  <th>Projekt</th>
-                  <th>Typ</th>
+                  <th>Project</th>
+                  <th>Type</th>
                   <th>Score</th>
-                  <th>Dokumenty</th>
-                  <th>Zadania</th>
+                  <th>Documents</th>
+                  <th>Tasks</th>
                   <th>Compliance</th>
                   <th>Stack</th>
                 </tr>
@@ -109,11 +109,11 @@ export default function ItDashboard() {
                     <td>
                       {p.documents_approved}/{p.documents_total} OK
                       {p.documents_in_review > 0 && <span className="pill review">{p.documents_in_review} review</span>}
-                      {p.required_docs_missing > 0 && <span className="pill gap">-{p.required_docs_missing} brak</span>}
+                      {p.required_docs_missing > 0 && <span className="pill gap">-{p.required_docs_missing} missing</span>}
                     </td>
                     <td>
-                      {p.open_tasks} otw.
-                      {p.overdue_tasks > 0 && <span className="pill overdue">{p.overdue_tasks} po terminie</span>}
+                      {p.open_tasks} open
+                      {p.overdue_tasks > 0 && <span className="pill overdue">{p.overdue_tasks} overdue</span>}
                     </td>
                     <td>
                       <div className="compliance-tags">

@@ -27,7 +27,7 @@ from app.schemas.compliance_admin import (
     ProjectControlAssignmentRead,
     ProjectControlAssignmentUpdate,
 )
-from app.services.audit import AuditAction, log_action
+from app.services.audit import AuditAction, action_label, log_action
 from app.services.project_access import project_ids_for_user
 from app.services.project_controls_sync import framework_codes_from_project, sync_controls_for_project
 
@@ -214,6 +214,62 @@ def control_schedule(
     return result
 
 
+@router.get("/{project_id}/controls/report")
+def project_controls_report(
+    project_id: UUID,
+    format: str = Query("csv", pattern="^(csv|json)$"),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_active_user),
+):
+    """Export project control assignments as CSV or JSON."""
+    project = _require_project_access(db, project_id, current_user.id)
+    rows_data = []
+    assignments = db.query(ProjectControlAssignment).filter(ProjectControlAssignment.project_id == project_id).all()
+    now = datetime.now(timezone.utc)
+
+    for a in assignments:
+        detail = _serialize_assignment_detail(db, a)
+        next_at = a.next_review_at
+        is_overdue = False
+        if next_at:
+            review_dt = next_at.replace(tzinfo=timezone.utc) if next_at.tzinfo is None else next_at
+            is_overdue = review_dt < now
+        rows_data.append({
+            "project_key": project.key,
+            "control_ref": detail.control_ref or "",
+            "control_title": detail.control_title or "",
+            "framework_code": detail.framework_code or "",
+            "domain": detail.domain or "",
+            "status": detail.status,
+            "control_owner": detail.control_owner_name or "",
+            "assignee": detail.assignee_name or "",
+            "next_review_at": detail.next_review_at.isoformat() if detail.next_review_at else "",
+            "last_tested_at": detail.last_tested_at.isoformat() if detail.last_tested_at else "",
+            "is_overdue": "yes" if is_overdue else "no",
+            "implementation_notes": detail.implementation_notes or "",
+        })
+
+    if format == "json":
+        return {"project_key": project.key, "count": len(rows_data), "controls": rows_data}
+
+    output = io.StringIO()
+    fieldnames = list(rows_data[0].keys()) if rows_data else [
+        "project_key", "control_ref", "control_title", "framework_code", "domain",
+        "status", "control_owner", "assignee", "next_review_at", "last_tested_at",
+        "is_overdue", "implementation_notes",
+    ]
+    writer = csv.DictWriter(output, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(rows_data)
+
+    filename = f"controls-{project.key}-{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"
+    return Response(
+        content=output.getvalue(),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
 @router.get("/{project_id}/controls/{assignment_id}", response_model=ProjectControlAssignmentDetailRead)
 def get_project_control(
     project_id: UUID,
@@ -325,62 +381,6 @@ def update_project_control(
     return _serialize_assignment(db, row)
 
 
-@router.get("/{project_id}/controls/report")
-def project_controls_report(
-    project_id: UUID,
-    format: str = Query("csv", pattern="^(csv|json)$"),
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_active_user),
-):
-    """Export project control assignments as CSV or JSON."""
-    project = _require_project_access(db, project_id, current_user.id)
-    rows_data = []
-    assignments = db.query(ProjectControlAssignment).filter(ProjectControlAssignment.project_id == project_id).all()
-    now = datetime.now(timezone.utc)
-
-    for a in assignments:
-        detail = _serialize_assignment_detail(db, a)
-        next_at = a.next_review_at
-        is_overdue = False
-        if next_at:
-            review_dt = next_at.replace(tzinfo=timezone.utc) if next_at.tzinfo is None else next_at
-            is_overdue = review_dt < now
-        rows_data.append({
-            "project_key": project.key,
-            "control_ref": detail.control_ref or "",
-            "control_title": detail.control_title or "",
-            "framework_code": detail.framework_code or "",
-            "domain": detail.domain or "",
-            "status": detail.status,
-            "control_owner": detail.control_owner_name or "",
-            "assignee": detail.assignee_name or "",
-            "next_review_at": detail.next_review_at.isoformat() if detail.next_review_at else "",
-            "last_tested_at": detail.last_tested_at.isoformat() if detail.last_tested_at else "",
-            "is_overdue": "yes" if is_overdue else "no",
-            "implementation_notes": detail.implementation_notes or "",
-        })
-
-    if format == "json":
-        return {"project_key": project.key, "count": len(rows_data), "controls": rows_data}
-
-    output = io.StringIO()
-    fieldnames = list(rows_data[0].keys()) if rows_data else [
-        "project_key", "control_ref", "control_title", "framework_code", "domain",
-        "status", "control_owner", "assignee", "next_review_at", "last_tested_at",
-        "is_overdue", "implementation_notes",
-    ]
-    writer = csv.DictWriter(output, fieldnames=fieldnames)
-    writer.writeheader()
-    writer.writerows(rows_data)
-
-    filename = f"controls-{project.key}-{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"
-    return Response(
-        content=output.getvalue(),
-        media_type="text/csv; charset=utf-8",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
-    )
-
-
 @router.get("/{project_id}/audit-trail")
 def project_audit_trail(
     project_id: UUID,
@@ -401,6 +401,7 @@ def project_audit_trail(
         {
             "id": str(log.id),
             "action": log.action,
+            "action_label": action_label(log.action),
             "entity_type": log.entity_type,
             "entity_id": str(log.entity_id),
             "actor_name": user.name if user else None,

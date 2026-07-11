@@ -20,6 +20,7 @@ class AuditorAuditEntry(BaseModel):
     project_key: Optional[str] = None
     project_name: Optional[str] = None
     action: str
+    action_label: Optional[str] = None
     entity_type: str
     entity_id: UUID
     actor_name: Optional[str] = None

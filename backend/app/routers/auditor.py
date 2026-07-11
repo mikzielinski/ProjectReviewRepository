@@ -22,6 +22,7 @@ from app.models import (
     User,
 )
 from app.schemas.auditor import AuditorAuditEntry, AuditorControlItem, AuditorOverview
+from app.services.audit import action_label
 from app.services.project_access import org_ids_for_user, project_ids_for_user
 
 router = APIRouter(prefix="/auditor", tags=["auditor"])
@@ -47,7 +48,7 @@ def _gap_reason(status: str, is_overdue: bool, is_applicable: bool) -> Optional[
     if status in _GAP_STATUSES:
         return f"Status: {status}"
     if is_overdue:
-        return "Przeterminowany review"
+        return "Overdue review"
     if status not in _DONE_STATUSES:
         return f"Status: {status}"
     return None
@@ -153,6 +154,7 @@ def auditor_audit_trail(
                 project_key=proj.key if proj else None,
                 project_name=proj.name if proj else None,
                 action=log.action,
+                action_label=action_label(log.action),
                 entity_type=log.entity_type,
                 entity_id=log.entity_id,
                 actor_name=user.name if user else None,

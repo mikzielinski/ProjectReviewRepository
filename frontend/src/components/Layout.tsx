@@ -36,7 +36,7 @@ const Layout = ({ children }: LayoutProps) => {
             to="/projects" 
             className={`nav-item ${isActive('/projects') && !location.pathname.startsWith('/compliance') && !location.pathname.startsWith('/admin') && !location.pathname.startsWith('/auditor') && !location.pathname.match(/^\/projects\/[^/]+$/) ? 'active' : ''}`}
           >
-            💻 Projekty dev
+            💻 Dev Projects
           </Link>
           <Link 
             to="/compliance" 
@@ -60,7 +60,7 @@ const Layout = ({ children }: LayoutProps) => {
             to="/auditor" 
             className={`nav-item ${isActive('/auditor') ? 'active' : ''}`}
           >
-            🔍 Audytor
+            🔍 Auditor
           </Link>
           <div className="nav-separator"></div>
           {isActive('/projects') && location.pathname.match(/^\/projects\/[^/]+$/) ? (

@@ -28,9 +28,9 @@ const COMPLIANCE_LABELS: Record<string, string> = {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  ACTIVE: 'Aktywny',
-  INACTIVE: 'Nieaktywny',
-  ARCHIVED: 'Zarchiwizowany',
+  ACTIVE: 'Active',
+  INACTIVE: 'Inactive',
+  ARCHIVED: 'Archived',
 }
 
 type ComplianceSubTab = 'controls' | 'schedule' | 'audit'
@@ -88,42 +88,42 @@ export default function ComplianceProjects() {
       <div className="compliance-projects-page">
         <header className="cp-header">
           <div>
-            <h1>Projekty Compliance & Security</h1>
+            <h1>Compliance & Security Projects</h1>
             <p className="cp-subtitle">
-              ISO, SOC 2, SOX, HIPAA, GxP, AI Act, KNF/DORA — kontrolki, audyt i harmonogram testów w jednym miejscu.
+              ISO, SOC 2, SOX, HIPAA, GxP, AI Act, KNF/DORA — controls, audit, and test schedule in one place.
             </p>
           </div>
           <button type="button" className="cp-btn-auditor" onClick={() => navigate('/auditor')}>
-            Portal audytora
+            Auditor portal
           </button>
         </header>
 
         {!loading && projects.length > 0 && (
-          <section className="cp-kpi-grid" aria-label="Statystyki portfolio">
+          <section className="cp-kpi-grid" aria-label="Portfolio statistics">
             <div className="cp-kpi-card">
               <span className="cp-kpi-value">{stats.total}</span>
-              <span className="cp-kpi-label">Projekty</span>
+              <span className="cp-kpi-label">Projects</span>
             </div>
             <div className="cp-kpi-card">
               <span className="cp-kpi-value">{stats.active}</span>
-              <span className="cp-kpi-label">Aktywne</span>
+              <span className="cp-kpi-label">Active</span>
             </div>
             <div className="cp-kpi-card accent">
               <span className="cp-kpi-value">{stats.standards}</span>
-              <span className="cp-kpi-label">Standardy w portfolio</span>
+              <span className="cp-kpi-label">Standards in portfolio</span>
             </div>
           </section>
         )}
 
         {!loading && availableFilters.length > 0 && (
-          <section className="cp-filters" aria-label="Filtr standardów">
-            <span className="cp-filters-label">Filtruj:</span>
+          <section className="cp-filters" aria-label="Standard filter">
+            <span className="cp-filters-label">Filter:</span>
             <button
               type="button"
               className={`cp-filter-chip ${standardFilter === null ? 'active' : ''}`}
               onClick={() => setStandardFilter(null)}
             >
-              Wszystkie
+              All
             </button>
             {availableFilters.map((key) => (
               <button
@@ -139,16 +139,16 @@ export default function ComplianceProjects() {
         )}
 
         {loading ? (
-          <div className="cp-loading">Ładowanie projektów compliance…</div>
+          <div className="cp-loading">Loading compliance projects…</div>
         ) : projects.length === 0 ? (
           <div className="cp-empty card">
-            <p>Brak projektów compliance. Utwórz projekt z kategorii COMPLIANCE lub użyj typu ISMS / SOC2 / SOX w panelu admina.</p>
+            <p>No compliance projects yet. Create a project with the COMPLIANCE category or use an ISMS / SOC2 / SOX type in the admin panel.</p>
           </div>
         ) : filteredProjects.length === 0 ? (
           <div className="cp-empty card">
-            <p>Brak projektów pasujących do wybranego filtra.</p>
+            <p>No projects match the selected filter.</p>
             <button type="button" className="cp-filter-reset" onClick={() => setStandardFilter(null)}>
-              Wyczyść filtr
+              Clear filter
             </button>
           </div>
         ) : (
@@ -189,13 +189,13 @@ export default function ComplianceProjects() {
 
                   <div className="cp-actions" onClick={(e) => e.stopPropagation()}>
                     <button type="button" className="cp-action-btn" onClick={() => openProject(p.id, 'controls')}>
-                      Kontrolki
+                      Controls
                     </button>
                     <button type="button" className="cp-action-btn" onClick={() => openProject(p.id, 'audit')}>
                       Audit trail
                     </button>
                     <button type="button" className="cp-action-btn primary" onClick={() => openProject(p.id, 'schedule')}>
-                      Harmonogram
+                      Schedule
                     </button>
                   </div>
                 </article>

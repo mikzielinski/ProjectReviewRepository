@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import api from '../services/api'
+import { getAuditActionLabel } from '../utils/auditLabels'
 import ControlDetailPanel from './ControlDetailPanel'
 import './ComplianceControlsTab.css'
 
@@ -42,6 +43,7 @@ interface ScheduleItem {
 interface AuditEntry {
   id: string
   action: string
+  action_label?: string
   entity_type: string
   actor_name?: string
   created_at?: string
@@ -122,24 +124,24 @@ export default function ComplianceControlsTab({ projectId, initialSubTab }: Prop
 
   const openDetail = (id: string) => setSelectedId(id)
 
-  if (loading) return <p>Ładowanie kontrolek…</p>
+  if (loading) return <p>Loading controls…</p>
 
   return (
     <div className="compliance-controls-tab">
       <div className="cc-toolbar">
         <div className="cc-subtabs">
-          <button className={subTab === 'controls' ? 'active' : ''} onClick={() => setSubTab('controls')}>Kontrolki</button>
-          <button className={subTab === 'schedule' ? 'active' : ''} onClick={() => setSubTab('schedule')}>Harmonogram</button>
+          <button className={subTab === 'controls' ? 'active' : ''} onClick={() => setSubTab('controls')}>Controls</button>
+          <button className={subTab === 'schedule' ? 'active' : ''} onClick={() => setSubTab('schedule')}>Schedule</button>
           <button className={subTab === 'audit' ? 'active' : ''} onClick={() => setSubTab('audit')}>Audit trail</button>
         </div>
         <div className="cc-toolbar-actions">
           {assignments.length > 0 && (
             <button className="btn-export" onClick={exportReport} disabled={exporting}>
-              {exporting ? 'Eksport…' : 'Eksportuj raport'}
+              {exporting ? 'Exporting…' : 'Export report'}
             </button>
           )}
           <button className="btn-primary" onClick={syncControls} disabled={syncing}>
-            {syncing ? 'Synchronizacja…' : '↻ Sync kontrolek z frameworków'}
+            {syncing ? 'Syncing…' : '↻ Sync controls from frameworks'}
           </button>
         </div>
       </div>
@@ -147,19 +149,19 @@ export default function ComplianceControlsTab({ projectId, initialSubTab }: Prop
       {subTab === 'controls' && (
         assignments.length === 0 ? (
           <div className="cc-empty card">
-            <p>Brak przypisanych kontrolek. Kliknij „Sync kontrolek” aby załadować kontrolki z włączonych standardów (ISO, SOC2, SOX…).</p>
+            <p>No controls assigned yet. Click &quot;Sync controls&quot; to load controls from enabled standards (ISO, SOC2, SOX…).</p>
           </div>
         ) : (
           <table className="cc-table">
             <thead>
               <tr>
                 <th>Ref</th>
-                <th>Kontrolka</th>
+                <th>Control</th>
                 <th>Framework</th>
                 <th>Control Owner</th>
                 <th>Assignee</th>
                 <th>Status</th>
-                <th>Nast. review</th>
+                <th>Next review</th>
               </tr>
             </thead>
             <tbody>
@@ -215,11 +217,11 @@ export default function ComplianceControlsTab({ projectId, initialSubTab }: Prop
         <table className="cc-table">
           <thead>
             <tr>
-              <th>Kontrolka</th>
+              <th>Control</th>
               <th>Framework</th>
               <th>Owner</th>
               <th>Assignee</th>
-              <th>Termin review</th>
+              <th>Review due</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -245,12 +247,12 @@ export default function ComplianceControlsTab({ projectId, initialSubTab }: Prop
       {subTab === 'audit' && (
         <div className="audit-list">
           {audit.length === 0 ? (
-            <p className="muted">Brak wpisów audit trail dla tego projektu.</p>
+            <p className="muted">No audit trail entries for this project.</p>
           ) : (
             audit.map((entry) => (
               <div key={entry.id} className="audit-row">
                 <div className="audit-meta">
-                  <strong>{entry.action}</strong>
+                  <strong>{entry.action_label || getAuditActionLabel(entry.action)}</strong>
                   <span>{entry.entity_type}</span>
                   <span>{entry.actor_name}</span>
                   <time>{entry.created_at ? new Date(entry.created_at).toLocaleString() : ''}</time>

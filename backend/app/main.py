@@ -383,15 +383,28 @@ async def startup_event():
     print("STARTUP: Event completed - server ready to accept requests")
 
 
+def _route_has_method(path: str, method: str) -> bool:
+    method = method.upper()
+    for route in app.routes:
+        if getattr(route, "path", "") != path:
+            continue
+        methods = getattr(route, "methods", None) or set()
+        if method in methods:
+            return True
+    return False
+
+
 @app.get("/health")
 def health():
     route_paths = {getattr(r, "path", "") for r in app.routes}
+    controls_detail_path = "/api/v1/projects/{project_id}/controls/{assignment_id}"
     return {
         "status": "ok",
         "features": {
             "admin": "/api/v1/admin/project-types" in route_paths,
             "auditor": "/api/v1/auditor" in route_paths or any("/auditor" in p for p in route_paths),
-            "project_controls": any("/project-controls" in p for p in route_paths),
+            "project_controls": any("/controls" in p and "/projects/" in p for p in route_paths),
+            "project_controls_detail_get": _route_has_method(controls_detail_path, "GET"),
         },
     }
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import api from '../services/api'
+import { getAuditActionLabel } from '../utils/auditLabels'
 import './AuditLogModal.css'
 
 interface Props {
@@ -61,12 +62,7 @@ export default function AuditLogModal({
 
   if (!isOpen) return null
 
-  const formatAction = (action: string): string => {
-    return action.replace(/_/g, ' ').toLowerCase()
-      .split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ')
-  }
+  const formatAction = (action: string): string => getAuditActionLabel(action)
 
   // const formatChanges = (json: any): Array<{key: string, before: string, after: string}> => {
   //   if (!json || typeof json !== 'object') return []

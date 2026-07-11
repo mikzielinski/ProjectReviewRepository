@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import api from '../services/api'
+import { getAuditActionLabel } from '../utils/auditLabels'
 import './ControlDetailPanel.css'
 
 export interface EvidenceLink {
@@ -45,6 +46,23 @@ export interface ControlTestRun {
   created_at?: string
 }
 
+export interface ControlListPreview {
+  control_ref?: string
+  control_title?: string
+  framework_code?: string
+  domain?: string
+  control_owner_user_id?: string
+  control_owner_name?: string
+  assignee_user_id?: string
+  assignee_name?: string
+  status: string
+  is_applicable?: boolean
+  implementation_notes?: string
+  review_frequency_days?: number
+  next_review_at?: string
+  last_tested_at?: string
+}
+
 interface UserOption {
   id: string
   name: string
@@ -53,6 +71,7 @@ interface UserOption {
 interface Props {
   projectId: string
   assignmentId: string
+  listPreview?: ControlListPreview
   readOnly?: boolean
   onClose: () => void
   onUpdated?: () => void
@@ -60,9 +79,40 @@ interface Props {
 
 const STATUSES = ['NOT_STARTED', 'IN_PROGRESS', 'IMPLEMENTED', 'TESTED', 'NON_APPLICABLE']
 
+function isDetailUnavailable(err: unknown): boolean {
+  const status = (err as { response?: { status?: number } })?.response?.status
+  return status === 404 || status === 405
+}
+
+function buildDetailFromPreview(
+  projectId: string,
+  assignmentId: string,
+  preview: ControlListPreview,
+): ControlDetail {
+  return {
+    id: assignmentId,
+    project_id: projectId,
+    control_ref: preview.control_ref,
+    control_title: preview.control_title,
+    framework_code: preview.framework_code,
+    domain: preview.domain,
+    control_owner_user_id: preview.control_owner_user_id,
+    control_owner_name: preview.control_owner_name,
+    assignee_user_id: preview.assignee_user_id,
+    assignee_name: preview.assignee_name,
+    status: preview.status,
+    is_applicable: preview.is_applicable ?? true,
+    implementation_notes: preview.implementation_notes,
+    review_frequency_days: preview.review_frequency_days,
+    next_review_at: preview.next_review_at,
+    last_tested_at: preview.last_tested_at,
+  }
+}
+
 export default function ControlDetailPanel({
   projectId,
   assignmentId,
+  listPreview,
   readOnly = false,
   onClose,
   onUpdated,
@@ -73,6 +123,7 @@ export default function ControlDetailPanel({
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
 
   const [notes, setNotes] = useState('')
   const [evidenceUrl, setEvidenceUrl] = useState('')
@@ -96,7 +147,7 @@ export default function ControlDetailPanel({
       }
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
-      setError(msg || 'Nie udało się załadować szczegółów kontrolki')
+      setError(msg || 'Failed to load control details')
     } finally {
       setLoading(false)
     }
@@ -120,7 +171,7 @@ export default function ControlDetailPanel({
     const now = new Date().toISOString()
     const newLink: EvidenceLink = {
       url: evidenceUrl.trim(),
-      label: evidenceLabel.trim() || 'Dowód kontroli',
+      label: evidenceLabel.trim() || 'Control evidence',
       uploaded_at: now,
       run_date: now.split('T')[0],
     }
@@ -143,7 +194,7 @@ export default function ControlDetailPanel({
     return (
       <div className="cdp-overlay" onClick={onClose}>
         <div className="cdp-panel" onClick={(e) => e.stopPropagation()}>
-          <p>Ładowanie…</p>
+          <p>Loading…</p>
         </div>
       </div>
     )
@@ -160,34 +211,34 @@ export default function ControlDetailPanel({
               <span className="cdp-framework">{detail.framework_code}</span>
             )}
           </div>
-          <button className="cdp-close" onClick={onClose} aria-label="Zamknij">✕</button>
+          <button className="cdp-close" onClick={onClose} aria-label="Close">✕</button>
         </header>
 
         {error && <div className="cdp-error">{error}</div>}
+        {notice && <div className="cdp-notice">{notice}</div>}
 
-        {detail && (
-          <div className="cdp-body">
+        <div className="cdp-body">
             <section className="cdp-section">
-              <h4>Opis kontrolki</h4>
-              <p className="cdp-description">{detail.description || 'Brak opisu w bibliotece kontrolek.'}</p>
+              <h4>Control description</h4>
+              <p className="cdp-description">{detail.description || 'No description in the controls library.'}</p>
               <div className="cdp-meta-grid">
-                {detail.domain && <div><span>Domena</span><strong>{detail.domain}</strong></div>}
-                {detail.control_type && <div><span>Typ</span><strong>{detail.control_type}</strong></div>}
+                {detail.domain && <div><span>Domain</span><strong>{detail.domain}</strong></div>}
+                {detail.control_type && <div><span>Type</span><strong>{detail.control_type}</strong></div>}
                 {detail.testing_frequency_days != null && (
-                  <div><span>Częstotliwość testów</span><strong>{detail.testing_frequency_days} dni</strong></div>
+                  <div><span>Test frequency</span><strong>{detail.testing_frequency_days} days</strong></div>
                 )}
                 {detail.review_frequency_days != null && (
-                  <div><span>Review (projekt)</span><strong>{detail.review_frequency_days} dni</strong></div>
+                  <div><span>Review (project)</span><strong>{detail.review_frequency_days} days</strong></div>
                 )}
               </div>
             </section>
 
             {(detail.mapped_document_types_json?.length || detail.evidence_requirements_json?.length) ? (
               <section className="cdp-section">
-                <h4>Wymagania</h4>
+                <h4>Requirements</h4>
                 {detail.mapped_document_types_json?.length ? (
                   <div className="cdp-tags">
-                    <span className="cdp-tags-label">Typy dokumentów:</span>
+                    <span className="cdp-tags-label">Document types:</span>
                     {detail.mapped_document_types_json.map((t, i) => (
                       <span key={i} className="cdp-tag">{String(t)}</span>
                     ))}
@@ -204,7 +255,7 @@ export default function ControlDetailPanel({
             ) : null}
 
             <section className="cdp-section">
-              <h4>Status implementacji</h4>
+              <h4>Implementation status</h4>
               <div className="cdp-meta-grid">
                 <div>
                   <span>Status</span>
@@ -251,19 +302,19 @@ export default function ControlDetailPanel({
                   )}
                 </div>
                 <div>
-                  <span>Nast. review</span>
+                  <span>Next review</span>
                   <strong>{detail.next_review_at ? new Date(detail.next_review_at).toLocaleDateString() : '—'}</strong>
                 </div>
                 <div>
-                  <span>Ostatni test</span>
+                  <span>Last test</span>
                   <strong>{detail.last_tested_at ? new Date(detail.last_tested_at).toLocaleString() : '—'}</strong>
                 </div>
               </div>
               {!readOnly && (
                 <div className="cdp-notes">
-                  <label>Notatki implementacji</label>
+                  <label>Implementation notes</label>
                   <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
-                  <button className="btn-secondary" onClick={saveNotes} disabled={saving}>Zapisz notatki</button>
+                  <button className="btn-secondary" onClick={saveNotes} disabled={saving}>Save notes</button>
                 </div>
               )}
               {readOnly && detail.implementation_notes && (
@@ -272,7 +323,7 @@ export default function ControlDetailPanel({
             </section>
 
             <section className="cdp-section">
-              <h4>Dowody / evidence</h4>
+              <h4>Evidence</h4>
               {detail.evidence_links_json?.length ? (
                 <ul className="cdp-evidence-list">
                   {detail.evidence_links_json.map((ev, i) => (
@@ -284,19 +335,19 @@ export default function ControlDetailPanel({
                   ))}
                 </ul>
               ) : (
-                <p className="muted">Brak załączonych dowodów.</p>
+                <p className="muted">No evidence attached.</p>
               )}
               {!readOnly && (
                 <div className="cdp-evidence-form">
                   <input
                     type="url"
-                    placeholder="URL dowodu (np. link do dokumentu)"
+                    placeholder="Evidence URL (e.g. link to document)"
                     value={evidenceUrl}
                     onChange={(e) => setEvidenceUrl(e.target.value)}
                   />
                   <input
                     type="text"
-                    placeholder="Etykieta (opcjonalnie)"
+                    placeholder="Label (optional)"
                     value={evidenceLabel}
                     onChange={(e) => setEvidenceLabel(e.target.value)}
                   />
@@ -305,22 +356,22 @@ export default function ControlDetailPanel({
                     onClick={addEvidenceAndTest}
                     disabled={saving || !evidenceUrl.trim()}
                   >
-                    Dodaj dowód i oznacz jako przetestowane
+                    Add evidence and mark as tested
                   </button>
                 </div>
               )}
             </section>
 
             <section className="cdp-section">
-              <h4>Poprzednie uruchomienia</h4>
+              <h4>Previous test runs</h4>
               {runs.length === 0 ? (
-                <p className="muted">Brak zapisanych uruchomień testów w audit trail.</p>
+                <p className="muted">No recorded test runs in the audit trail.</p>
               ) : (
                 <div className="cdp-runs">
                   {runs.map((run) => (
                     <div key={run.id} className="cdp-run-row">
                       <div className="cdp-run-meta">
-                        <strong>{run.action.replace(/_/g, ' ')}</strong>
+                        <strong>{getAuditActionLabel(run.action)}</strong>
                         <span>{run.tested_by_name || 'System'}</span>
                         <time>{run.tested_at ? new Date(run.tested_at).toLocaleString() : ''}</time>
                         {run.status && <span className={`status-pill status-${run.status.toLowerCase()}`}>{run.status}</span>}
@@ -341,7 +392,6 @@ export default function ControlDetailPanel({
               )}
             </section>
           </div>
-        )}
       </div>
     </div>
   )

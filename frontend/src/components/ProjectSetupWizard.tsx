@@ -717,7 +717,7 @@ const ProjectSetupWizard: React.FC<ProjectSetupWizardProps> = ({ project, onComp
               </div>
 
               <div className="form-group">
-                <label>Typ projektu (z panelu admin)</label>
+                <label>Project type (from admin panel)</label>
                 <select
                   value={basicInfo.project_type_definition_id}
                   onChange={(e) => {
@@ -726,43 +726,43 @@ const ProjectSetupWizard: React.FC<ProjectSetupWizardProps> = ({ project, onComp
                     if (id) applyProjectTypeDefinition(id)
                   }}
                 >
-                  <option value="">— Wybierz typ (opcjonalnie) —</option>
+                  <option value="">— Select type (optional) —</option>
                   {projectTypeDefinitions
                     .filter((t) => t.category === basicInfo.project_category)
                     .map((t) => (
                       <option key={t.id} value={t.id}>{t.name} ({t.code})</option>
                     ))}
                 </select>
-                <small>Automatycznie ustawia wymagane dokumenty, compliance i frameworki kontrolek</small>
+                <small>Automatically sets required documents, compliance settings, and control frameworks</small>
               </div>
 
               <div className="form-group">
-                <label>Typ projektu IT</label>
+                <label>IT project type</label>
                 <select
                   value={basicInfo.project_type}
                   onChange={(e) => setBasicInfo({ ...basicInfo, project_type: e.target.value })}
                 >
-                  <option value="IT">IT — ogólny</option>
+                  <option value="IT">IT — general</option>
                   <option value="RPA">RPA / Automation</option>
-                  <option value="INFRA">Infrastruktura</option>
+                  <option value="INFRA">Infrastructure</option>
                   <option value="DATA">Data / Analytics</option>
                   <option value="SECURITY">Security</option>
-                  <option value="INTEGRATION">Integracja systemów</option>
+                  <option value="INTEGRATION">Systems integration</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label>Opis</label>
+                <label>Description</label>
                 <textarea
                   value={basicInfo.description}
                   onChange={(e) => setBasicInfo({ ...basicInfo, description: e.target.value })}
-                  placeholder="Krótki opis celu i zakresu projektu IT"
+                  placeholder="Brief description of the IT project goal and scope"
                   rows={3}
                 />
               </div>
 
               <div className="form-group">
-                <label>Tech stack (opcjonalnie)</label>
+                <label>Tech stack (optional)</label>
                 <input
                   type="text"
                   value={basicInfo.tech_stack}
@@ -1415,11 +1415,11 @@ const ProjectSetupWizard: React.FC<ProjectSetupWizardProps> = ({ project, onComp
                   </div>
 
                   {[
-                    { key: 'iso27001', label: 'ISO/IEC 27001', desc: 'Information Security Management — popularna norma IT/bezpieczeństwa' },
-                    { key: 'soc2', label: 'SOC 2', desc: 'Trust Services Criteria — audyty SaaS/cloud' },
-                    { key: 'iso42001', label: 'ISO/IEC 42001 + AI Act', desc: 'Zarządzanie systemami AI i zgodność z EU AI Act' },
-                    { key: 'knf', label: 'KNF / DORA', desc: 'Sektor finansowy PL — cyberbezpieczeństwo i odporność operacyjna' },
-                    { key: 'eu_ai_act', label: 'EU AI Act', desc: 'Wymagania regulacyjne dla systemów AI wysokiego ryzyka' },
+                    { key: 'iso27001', label: 'ISO/IEC 27001', desc: 'Information Security Management — widely used IT/security standard' },
+                    { key: 'soc2', label: 'SOC 2', desc: 'Trust Services Criteria — SaaS/cloud audits' },
+                    { key: 'iso42001', label: 'ISO/IEC 42001 + AI Act', desc: 'AI system management and EU AI Act compliance' },
+                    { key: 'knf', label: 'KNF / DORA', desc: 'Polish financial sector — cybersecurity and operational resilience' },
+                    { key: 'eu_ai_act', label: 'EU AI Act', desc: 'Regulatory requirements for high-risk AI systems' },
                   ].map(({ key, label, desc }) => (
                     <div key={key} style={{ display: 'flex', alignItems: 'flex-start', padding: '0.75rem', border: '1px solid #e0e0e0', borderRadius: '4px' }}>
                       <input
