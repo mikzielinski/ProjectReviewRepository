@@ -172,3 +172,29 @@
   color: #e74c3c;
 }
 
+.compliance-category-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #f3e5f5;
+  color: #6a1b9a;
+}
+
+.compliance-standards-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.compliance-std-badge {
+  background: #f3e5f5;
+  color: #6a1b9a;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  font-weight: 600;
+  border: 1px solid #e1bee7;
+}
+

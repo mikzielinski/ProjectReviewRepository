@@ -18,6 +18,7 @@ interface Project {
   status: string
   created_at: string
   project_category?: string
+  compliance_settings_json?: Record<string, boolean>
   folder_id?: string
   enable_4_eyes_principal?: boolean
   required_document_types_json?: any[]
@@ -25,6 +26,36 @@ interface Project {
   approval_policies_json?: any
   escalation_chain_json?: any
   raci_matrix_json?: any
+}
+
+const COMPLIANCE_LABELS: Record<string, string> = {
+  hipaa: 'HIPAA',
+  sox: 'SOX',
+  gxp: 'GxP',
+  gisc: 'GIS',
+  iso27001: 'ISO/IEC 27001',
+  soc2: 'SOC 2',
+  iso42001: 'ISO/IEC 42001',
+  knf: 'KNF / DORA',
+  eu_ai_act: 'EU AI Act',
+}
+
+function hasEnabledComplianceSettings(settings?: Record<string, boolean>): boolean {
+  if (!settings) return false
+  return Object.values(settings).some(Boolean)
+}
+
+function isComplianceProject(project: Project): boolean {
+  if (project.project_category === 'COMPLIANCE') return true
+  if (project.key?.startsWith('DEMO-')) return true
+  return hasEnabledComplianceSettings(project.compliance_settings_json)
+}
+
+function getActiveComplianceStandards(project: Project): string[] {
+  const settings = project.compliance_settings_json || {}
+  return Object.entries(settings)
+    .filter(([, enabled]) => enabled)
+    .map(([key]) => COMPLIANCE_LABELS[key] || key.toUpperCase())
 }
 
 type Tab = 'overview' | 'documents' | 'team' | 'tasks' | 'gantt' | 'raci' | 'templates' | 'compliance'
@@ -93,6 +124,9 @@ const ProjectDetail = () => {
     )
   }
 
+  const showCompliance = isComplianceProject(project)
+  const complianceStandards = getActiveComplianceStandards(project)
+
   return (
     <Layout>
       <div className="project-detail">
@@ -152,7 +186,7 @@ const ProjectDetail = () => {
           >
             Templates
           </button>
-          {project.project_category === 'COMPLIANCE' && (
+          {showCompliance && (
             <button
               className={`tab ${activeTab === 'compliance' ? 'active' : ''}`}
               onClick={() => setActiveTab('compliance')}
@@ -199,7 +233,24 @@ const ProjectDetail = () => {
                     </span>
                   </div>
                 )}
+                {showCompliance && (
+                  <div className="info-row">
+                    <span className="info-label">Category:</span>
+                    <span className="compliance-category-badge">Compliance & Security</span>
+                  </div>
+                )}
               </div>
+
+              {showCompliance && complianceStandards.length > 0 && (
+                <div className="info-card">
+                  <h3>🛡️ Compliance Standards</h3>
+                  <div className="compliance-standards-badges">
+                    {complianceStandards.map((standard) => (
+                      <span key={standard} className="compliance-std-badge">{standard}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {project.required_document_types_json && project.required_document_types_json.length > 0 && (
                 <div className="info-card">
@@ -410,7 +461,7 @@ const ProjectDetail = () => {
           {activeTab === 'gantt' && <GanttTab projectId={id!} />}
           {activeTab === 'raci' && <RACITab projectId={id!} onTeamUpdate={loadProject} />}
           {activeTab === 'templates' && <TemplatesTab projectId={id!} />}
-          {activeTab === 'compliance' && project.project_category === 'COMPLIANCE' && (
+          {activeTab === 'compliance' && showCompliance && (
             <ComplianceControlsTab projectId={id!} />
           )}
         </div>
