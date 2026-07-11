@@ -61,6 +61,7 @@ def _serialize_assignment(db: Session, a: ProjectControlAssignment) -> ProjectCo
         control_id=a.control_id,
         control_ref=ctrl.control_ref if ctrl else None,
         control_title=ctrl.title if ctrl else None,
+        description=ctrl.description if ctrl else None,
         framework_code=fw_code,
         domain=ctrl.domain if ctrl else None,
         control_owner_user_id=a.control_owner_user_id,

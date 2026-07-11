@@ -49,6 +49,7 @@ export interface ControlTestRun {
 export interface ControlListPreview {
   control_ref?: string
   control_title?: string
+  description?: string
   framework_code?: string
   domain?: string
   control_owner_user_id?: string
@@ -94,6 +95,7 @@ function buildDetailFromPreview(
     project_id: projectId,
     control_ref: preview.control_ref,
     control_title: preview.control_title,
+    description: preview.description,
     framework_code: preview.framework_code,
     domain: preview.domain,
     control_owner_user_id: preview.control_owner_user_id,
@@ -259,9 +261,13 @@ export default function ControlDetailPanel({
         {notice && <div className="cdp-notice">{notice}</div>}
 
         <div className="cdp-body">
-            <section className="cdp-section">
-              <h4>Control description</h4>
-              <p className="cdp-description">{detail.description || 'No description in the controls library.'}</p>
+            <section className="cdp-section cdp-section-description">
+              <h4>What this control requires</h4>
+              {detail.description ? (
+                <p className="cdp-description">{detail.description}</p>
+              ) : (
+                <p className="cdp-description cdp-description-missing">No description available for this control.</p>
+              )}
               <div className="cdp-meta-grid">
                 {detail.domain && <div><span>Domain</span><strong>{detail.domain}</strong></div>}
                 {detail.control_type && <div><span>Type</span><strong>{detail.control_type}</strong></div>}

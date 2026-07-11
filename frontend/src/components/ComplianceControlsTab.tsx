@@ -14,6 +14,7 @@ interface Assignment {
   id: string
   control_ref?: string
   control_title?: string
+  description?: string
   framework_code?: string
   domain?: string
   control_owner_user_id?: string

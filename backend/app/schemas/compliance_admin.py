@@ -87,6 +87,7 @@ class ProjectControlAssignmentRead(BaseModel):
     control_id: UUID
     control_ref: Optional[str] = None
     control_title: Optional[str] = None
+    description: Optional[str] = None
     framework_code: Optional[str] = None
     domain: Optional[str] = None
     control_owner_user_id: Optional[UUID] = None
@@ -107,7 +108,6 @@ class ProjectControlAssignmentRead(BaseModel):
 
 
 class ProjectControlAssignmentDetailRead(ProjectControlAssignmentRead):
-    description: Optional[str] = None
     control_type: Optional[str] = None
     testing_frequency_days: Optional[int] = None
     mapped_document_types_json: Optional[list] = None

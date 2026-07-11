@@ -16,10 +16,38 @@ def _doc_list(codes: list[str]) -> list[dict[str, str]]:
     return [{"document_type_code": c, "document_type_name": c.replace("_", " ")} for c in codes]
 
 
+def update_control_descriptions(db: Session) -> int:
+    """Backfill descriptions on existing compliance_controls rows from the library."""
+    updated = 0
+    for spec in FRAMEWORKS:
+        fw = db.query(ComplianceFramework).filter(ComplianceFramework.code == spec["code"]).first()
+        if not fw:
+            continue
+        for ctrl in CONTROLS.get(spec["code"], []):
+            description = ctrl.get("description")
+            if not description:
+                continue
+            existing = (
+                db.query(ComplianceControl)
+                .filter(
+                    ComplianceControl.framework_id == fw.id,
+                    ComplianceControl.control_ref == ctrl["ref"],
+                )
+                .first()
+            )
+            if existing and not existing.description:
+                existing.description = description
+                updated += 1
+    if updated:
+        db.commit()
+    return updated
+
+
 def seed_compliance_library(db: Session) -> tuple[int, int]:
     """Seed frameworks and controls. Returns (frameworks_added, controls_added)."""
     fw_added = 0
     ctrl_added = 0
+    desc_updated = 0
     ref_to_id: dict[str, dict[str, object]] = {}
 
     for spec in FRAMEWORKS:
@@ -42,6 +70,9 @@ def seed_compliance_library(db: Session) -> tuple[int, int]:
             )
             if existing:
                 ref_to_id[spec["code"]][ctrl["ref"]] = existing.id
+                if ctrl.get("description") and not existing.description:
+                    existing.description = ctrl["description"]
+                    desc_updated += 1
                 continue
 
             parent_id = None
@@ -67,7 +98,7 @@ def seed_compliance_library(db: Session) -> tuple[int, int]:
             ref_to_id[spec["code"]][ctrl["ref"]] = row.id
             ctrl_added += 1
 
-    if fw_added or ctrl_added:
+    if fw_added or ctrl_added or desc_updated:
         db.commit()
     return fw_added, ctrl_added
 
