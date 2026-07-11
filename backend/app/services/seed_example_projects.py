@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, Optional
 
 from sqlalchemy.orm import Session
 
@@ -188,6 +188,14 @@ def seed_example_projects(db: Session, owner_emails: Optional[list] = None) -> i
                     invited_by=owner.id,
                 )
             )
+
+        try:
+            from app.services.project_controls_sync import sync_controls_for_project
+
+            sync_controls_for_project(db, project, owners[0].id)
+        except Exception as e:
+            logger.warning("Control sync failed for %s: %s", spec["key"], e)
+
         created += 1
         logger.info("Created example project %s (%s)", spec["key"], spec["name"])
 

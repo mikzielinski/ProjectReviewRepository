@@ -86,7 +86,7 @@ def sync_project_controls(
         log_action(
             db,
             current_user.id,
-            "CONTROL_SYNC",
+            AuditAction.CONTROL_SYNC,
             "Project",
             project_id,
             project_id=project_id,

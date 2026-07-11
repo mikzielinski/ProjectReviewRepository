@@ -9,6 +9,7 @@ from app.dependencies import get_current_active_user
 from app.schemas import ProjectCreate, ProjectRead, ProjectUpdate
 from app.schemas.tasks import GenerateTasksFromRACIRequest, TaskRead
 from app.models import Project, User
+from app.services.audit import AuditAction, log_action
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/projects", tags=["projects"])
@@ -343,7 +344,25 @@ def create_project(
                 invite_user_if_not_exists(user_id, role_code)
             except Exception as e:
                 logger.warning(f"Failed to invite user from invited_users list: {e}")
-    
+
+    try:
+        log_action(
+            db,
+            actor_user_id=current_user.id,
+            action=AuditAction.PROJECT_CREATE,
+            entity_type="Project",
+            entity_id=project.id,
+            org_id=org_id,
+            project_id=project.id,
+            after_json={
+                "key": project.key,
+                "name": project.name,
+                "project_category": project.project_category,
+            },
+        )
+    except Exception as e:
+        logger.warning(f"Audit log failed for project create: {e}")
+
     db.commit()
     db.refresh(project)
 
@@ -389,6 +408,8 @@ def update_project(
     project = db.query(Project).filter(Project.id == project_uuid).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
+
+    before = {"name": project.name, "status": project.status, "project_category": project.project_category}
     
     # Update fields if provided
     if payload.name is not None:
@@ -421,6 +442,22 @@ def update_project(
         project.tech_stack_json = payload.tech_stack_json
     if payload.raci_matrix_json is not None:
         project.raci_matrix_json = payload.raci_matrix_json
+
+    try:
+        log_action(
+            db,
+            actor_user_id=current_user.id,
+            action=AuditAction.PROJECT_UPDATE,
+            entity_type="Project",
+            entity_id=project.id,
+            org_id=project.org_id,
+            project_id=project.id,
+            before_json=before,
+            after_json={"name": project.name, "status": project.status, "project_category": project.project_category},
+        )
+    except Exception as e:
+        logger.warning(f"Audit log failed for project update: {e}")
+
     db.commit()
     db.refresh(project)
     return project
@@ -1199,6 +1236,22 @@ def create_project_task(
     )
     
     db.add(task)
+    db.flush()
+
+    try:
+        log_action(
+            db,
+            actor_user_id=current_user.id,
+            action=AuditAction.TASK_CREATE,
+            entity_type="Task",
+            entity_id=task.id,
+            org_id=project.org_id,
+            project_id=project_uuid,
+            after_json={"title": task.title, "status": task.status},
+        )
+    except Exception as e:
+        logger.warning(f"Audit log failed for task create: {e}")
+
     db.commit()
     db.refresh(task)
     
@@ -1231,6 +1284,10 @@ def update_project_task(
     task = db.query(Task).filter(Task.id == task_uuid, Task.project_id == project_uuid).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
+
+    project = db.query(Project).filter(Project.id == project_uuid).first()
+    status_before = task.status
+    audit_action = AuditAction.TASK_UPDATE
     
     if "title" in payload:
         task.title = payload["title"]
@@ -1246,6 +1303,7 @@ def update_project_task(
                         detail="Only the task owner or assigned user can change task status",
                     )
             if new_status == TaskStatus.COMPLETED.value:
+                audit_action = AuditAction.TASK_COMPLETE
                 _apply_task_completion_side_effects(task, project_uuid, db)
             else:
                 task.status = new_status
@@ -1302,7 +1360,22 @@ def update_project_task(
         task.priority = payload["priority"]
     if "is_blocking" in payload:
         task.is_blocking = payload["is_blocking"]
-    
+
+    try:
+        log_action(
+            db,
+            actor_user_id=current_user.id,
+            action=audit_action,
+            entity_type="Task",
+            entity_id=task.id,
+            org_id=project.org_id if project else None,
+            project_id=project_uuid,
+            before_json={"status": status_before},
+            after_json={"status": task.status, "title": task.title},
+        )
+    except Exception as e:
+        logger.warning(f"Audit log failed for task update: {e}")
+
     db.commit()
     db.refresh(task)
     
@@ -1910,7 +1983,24 @@ def complete_project_task(
     if not task.assigned_to_user_id:
         task.assigned_to_user_id = current_user.id
 
+    project = db.query(Project).filter(Project.id == project_uuid).first()
+    status_before = task.status
     _apply_task_completion_side_effects(task, project_uuid, db)
+
+    try:
+        log_action(
+            db,
+            actor_user_id=current_user.id,
+            action=AuditAction.TASK_COMPLETE,
+            entity_type="Task",
+            entity_id=task.id,
+            org_id=project.org_id if project else None,
+            project_id=project_uuid,
+            before_json={"status": status_before},
+            after_json={"status": task.status, "title": task.title},
+        )
+    except Exception as e:
+        logger.warning(f"Audit log failed for task complete: {e}")
 
     db.commit()
     db.refresh(task)

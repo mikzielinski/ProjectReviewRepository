@@ -52,6 +52,16 @@ export default function Auditor() {
   const [audit, setAudit] = useState<AuditEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [overdueOnly, setOverdueOnly] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  const emptyOverview: Overview = {
+    compliance_project_count: 0,
+    total_control_assignments: 0,
+    overdue_count: 0,
+    gap_count: 0,
+    tested_count: 0,
+    by_status: {},
+  }
 
   const loadOverview = async () => {
     const res = await api.get('/auditor/overview')
@@ -76,7 +86,19 @@ export default function Auditor() {
 
   useEffect(() => {
     setLoading(true)
-    Promise.all([loadOverview(), loadControls(), loadGaps(), loadAudit()])
+    setLoadError(null)
+    Promise.allSettled([loadOverview(), loadControls(), loadGaps(), loadAudit()])
+      .then((results) => {
+        const failed = results.filter((r) => r.status === 'rejected')
+        if (failed.length === results.length) {
+          setLoadError('Nie udało się załadować danych portalu audytora. Sprawdź, czy backend jest wdrożony z endpointami /auditor/.')
+        } else if (failed.length > 0) {
+          setLoadError('Część danych nie została załadowana.')
+        }
+        if (results[0].status === 'rejected') {
+          setOverview(emptyOverview)
+        }
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -113,37 +135,41 @@ export default function Auditor() {
           </button>
         </div>
 
+        {loadError && (
+          <div className="auditor-error" role="alert">{loadError}</div>
+        )}
+
         {loading ? (
           <p>Ładowanie…</p>
-        ) : tab === 'overview' && overview ? (
+        ) : tab === 'overview' ? (
           <section className="auditor-overview">
             <div className="stat-grid">
               <div className="stat-card">
-                <span className="stat-value">{overview.compliance_project_count}</span>
+                <span className="stat-value">{(overview ?? emptyOverview).compliance_project_count}</span>
                 <span className="stat-label">Projekty compliance</span>
               </div>
               <div className="stat-card">
-                <span className="stat-value">{overview.total_control_assignments}</span>
+                <span className="stat-value">{(overview ?? emptyOverview).total_control_assignments}</span>
                 <span className="stat-label">Przypisane kontrolki</span>
               </div>
               <div className="stat-card warn">
-                <span className="stat-value">{overview.gap_count}</span>
+                <span className="stat-value">{(overview ?? emptyOverview).gap_count}</span>
                 <span className="stat-label">Luki / do uzupełnienia</span>
               </div>
               <div className="stat-card alert">
-                <span className="stat-value">{overview.overdue_count}</span>
+                <span className="stat-value">{(overview ?? emptyOverview).overdue_count}</span>
                 <span className="stat-label">Przeterminowane review</span>
               </div>
               <div className="stat-card ok">
-                <span className="stat-value">{overview.tested_count}</span>
+                <span className="stat-value">{(overview ?? emptyOverview).tested_count}</span>
                 <span className="stat-label">Przetestowane</span>
               </div>
             </div>
-            {Object.keys(overview.by_status).length > 0 && (
+            {Object.keys((overview ?? emptyOverview).by_status).length > 0 && (
               <div className="card status-breakdown">
                 <h2>Status kontrolek</h2>
                 <div className="status-chips">
-                  {Object.entries(overview.by_status).map(([status, count]) => (
+                  {Object.entries((overview ?? emptyOverview).by_status).map(([status, count]) => (
                     <div key={status} className="status-chip">
                       <strong>{status}</strong>
                       <span>{count}</span>

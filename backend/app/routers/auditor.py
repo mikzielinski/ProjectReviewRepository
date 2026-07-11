@@ -5,6 +5,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.db import get_db
@@ -123,10 +124,16 @@ def auditor_audit_trail(
 
     projects = {p.id: p for p in db.query(Project).filter(Project.id.in_(project_ids)).all()}
 
+    filters = [AuditLog.project_id.in_(project_ids)]
+    if current_user.org_id:
+        filters.append(
+            (AuditLog.org_id == current_user.org_id) & (AuditLog.project_id.is_(None))
+        )
+
     logs = (
         db.query(AuditLog, User)
         .outerjoin(User, User.id == AuditLog.actor_user_id)
-        .filter(AuditLog.project_id.in_(project_ids))
+        .filter(or_(*filters))
         .order_by(AuditLog.created_at.desc())
         .limit(limit)
         .all()

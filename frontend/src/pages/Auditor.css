@@ -1,4 +1,8 @@
 .auditor-page { padding: 1.5rem; max-width: 1200px; }
+.auditor-error {
+  background: #fff3cd; border: 1px solid #ffc107; color: #856404;
+  padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1rem;
+}
 .auditor-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
 .auditor-header h1 { margin: 0 0 0.25rem; }
 .auditor-header p { color: #666; margin: 0; max-width: 640px; }

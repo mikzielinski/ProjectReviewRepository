@@ -357,6 +357,25 @@ async def startup_event():
             import traceback
             traceback.print_exc()
 
+        try:
+            logger.info("Seeding auditor demo audit trail...")
+            print("STARTUP: Seeding auditor demo audit trail...")
+            from app.services.seed_auditor_demo import seed_auditor_demo_logs
+
+            session = SessionLocal()
+            try:
+                seeded = seed_auditor_demo_logs(session)
+                if seeded:
+                    logger.info(f"Seeded {seeded} auditor demo audit log(s)")
+                    print(f"STARTUP: Seeded {seeded} auditor demo audit log(s)")
+            finally:
+                session.close()
+        except Exception as e:
+            logger.error(f"Error seeding auditor demo logs: {e}")
+            print(f"ERROR seeding auditor demo logs: {e}")
+            import traceback
+            traceback.print_exc()
+
     # Run in background thread to avoid blocking server startup
     thread = threading.Thread(target=init_db, daemon=True)
     thread.start()
