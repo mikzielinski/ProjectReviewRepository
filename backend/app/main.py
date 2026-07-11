@@ -294,3 +294,15 @@ async def startup_event():
 def health():
     return {"status": "ok"}
 
+
+@app.get("/")
+def root():
+    return {
+        "service": "DMS Governance API",
+        "status": "ok",
+        "frontend": "https://mikzielinski.github.io/ProjectReviewRepository/",
+        "docs": "/docs",
+        "health": "/health",
+        "api": "/api/v1",
+    }
+
