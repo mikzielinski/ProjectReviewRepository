@@ -197,6 +197,18 @@ def _list_controls(
         .all()
     )
 
+    user_ids: set[UUID] = set()
+    for a, _ctrl, _fw in rows:
+        if a.control_owner_user_id:
+            user_ids.add(a.control_owner_user_id)
+        if a.assignee_user_id:
+            user_ids.add(a.assignee_user_id)
+    users = (
+        {u.id: u for u in db.query(User).filter(User.id.in_(user_ids)).all()}
+        if user_ids
+        else {}
+    )
+
     result = []
     for a, ctrl, fw in rows:
         if status and a.status.upper() != status.upper():
@@ -205,8 +217,8 @@ def _list_controls(
         if overdue_only and not overdue:
             continue
 
-        owner = db.query(User).filter(User.id == a.control_owner_user_id).first() if a.control_owner_user_id else None
-        assignee = db.query(User).filter(User.id == a.assignee_user_id).first() if a.assignee_user_id else None
+        owner = users.get(a.control_owner_user_id) if a.control_owner_user_id else None
+        assignee = users.get(a.assignee_user_id) if a.assignee_user_id else None
         proj = projects.get(a.project_id)
 
         result.append(

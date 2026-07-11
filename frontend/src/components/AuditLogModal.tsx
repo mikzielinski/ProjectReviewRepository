@@ -4,7 +4,8 @@ import { getAuditActionLabel } from '../utils/auditLabels'
 import './AuditLogModal.css'
 
 interface Props {
-  templateId: string
+  templateId?: string
+  documentId?: string
   templateName: string
   isOpen: boolean
   onClose: () => void
@@ -24,14 +25,17 @@ interface AuditLogEntry {
 }
 
 interface AuditLogResponse {
-  template_id: string
-  template_name: string
+  template_id?: string
+  template_name?: string
+  document_id?: string
+  document_title?: string
   total_entries: number
   entries: AuditLogEntry[]
 }
 
 export default function AuditLogModal({
   templateId,
+  documentId,
   templateName,
   isOpen,
   onClose
@@ -41,13 +45,16 @@ export default function AuditLogModal({
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen || (!templateId && !documentId)) return
 
     const fetchAuditLog = async () => {
       setLoading(true)
       setError(null)
       try {
-        const response = await api.get<AuditLogResponse>(`/templates/${templateId}/audit-log`)
+        const url = documentId
+          ? `/documents/${documentId}/audit-log`
+          : `/templates/${templateId}/audit-log`
+        const response = await api.get<AuditLogResponse>(url)
         setAuditLog(response.data)
       } catch (err: any) {
         console.error('Error loading audit log:', err)
@@ -58,7 +65,7 @@ export default function AuditLogModal({
     }
 
     fetchAuditLog()
-  }, [isOpen, templateId])
+  }, [isOpen, templateId, documentId])
 
   if (!isOpen) return null
 

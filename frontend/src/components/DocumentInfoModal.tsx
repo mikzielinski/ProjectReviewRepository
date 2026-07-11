@@ -356,7 +356,7 @@ export default function DocumentInfoModal({
       
       {showAuditLog && (
         <AuditLogModal
-          templateId={documentId}
+          documentId={documentId}
           templateName={info?.title || 'Document'}
           isOpen={showAuditLog}
           onClose={() => setShowAuditLog(false)}

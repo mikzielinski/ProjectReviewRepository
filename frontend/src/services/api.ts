@@ -6,7 +6,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000, // 10 seconds timeout - reduced from 60s for faster error detection
+  timeout: 30000,
 })
 
 // Add token to requests
@@ -67,7 +67,7 @@ api.interceptors.response.use(
         alert(`Backend server is not reachable at ${error.config?.baseURL || PRODUCTION_API}`)
       } else if (error.code === 'ETIMEDOUT' || error.message.includes('timeout')) {
         console.error('⏱️ Request timeout - Backend may be slow or unresponsive')
-        alert('Request timeout — backend on Render may be waking up (free tier). Try again in 30 seconds.')
+        // Do not alert globally — pages show inline errors for slow endpoints
       } else if (error.message.includes('Network Error') || error.message.includes('Failed to fetch')) {
         console.error('🌐 Network error - Check CORS or backend connection')
         alert(`Network error — cannot reach API at ${error.config?.baseURL || PRODUCTION_API}. Check Render status or try Cmd+Shift+R.`)

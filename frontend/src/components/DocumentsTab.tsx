@@ -3,7 +3,7 @@ import api from '../services/api'
 import './Tabs.css'
 import './ProjectDocumentsTree.css'
 import './TemplateInfoModal.css'
-// import AuditLogModal from './AuditLogModal' // Not used currently
+import AuditLogModal from './AuditLogModal'
 // @ts-ignore - react-doc-viewer may not have types
 import DocViewer, { DocViewerRenderers } from '@cyntler/react-doc-viewer'
 
@@ -1475,20 +1475,12 @@ const DocumentsTab = ({ projectId, projectName }: DocumentsTabProps) => {
 
     {/* Audit Log Modal - For now, we'll use project audit with filtering */}
     {showAuditLog && selectedDocumentForAudit && (
-        <div className="modal-overlay" onClick={() => setShowAuditLog(false)} key="audit-log-modal">
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '800px' }}>
-            <div className="modal-header">
-              <h2>Audit Log: {selectedDocumentForAudit.title}</h2>
-              <button className="modal-close" onClick={() => setShowAuditLog(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <p>Audit log for documents will be available soon. Currently, audit log is available for templates only.</p>
-              <p style={{ fontSize: '0.9rem', color: '#666', marginTop: '1rem' }}>
-                To view document audit logs, use the project audit log with entity type filter.
-              </p>
-            </div>
-          </div>
-        </div>
+      <AuditLogModal
+        documentId={selectedDocumentForAudit.id}
+        templateName={selectedDocumentForAudit.title}
+        isOpen={showAuditLog}
+        onClose={() => setShowAuditLog(false)}
+      />
     )}
 
     {/* Edit Document Info Modal - Outside tab-panel */}
