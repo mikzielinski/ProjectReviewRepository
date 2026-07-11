@@ -84,7 +84,6 @@ def _serialize_assignment_detail(db: Session, a: ProjectControlAssignment) -> Pr
     ctrl = db.query(ComplianceControl).filter(ComplianceControl.id == a.control_id).first()
     return ProjectControlAssignmentDetailRead(
         **base.model_dump(),
-        description=ctrl.description if ctrl else None,
         control_type=ctrl.control_type if ctrl else None,
         testing_frequency_days=ctrl.testing_frequency_days if ctrl else None,
         mapped_document_types_json=ctrl.mapped_document_types_json if ctrl else None,
