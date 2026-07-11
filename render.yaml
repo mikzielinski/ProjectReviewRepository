@@ -23,4 +23,7 @@ services:
         sync: false
       - key: PROJECT_ACCESS_BOOTSTRAP_EMAILS
         sync: false
-
+      - key: ADMIN_EMAILS
+        sync: false
+      - key: FRAMEWORK_OWNER_SOC2
+        sync: false

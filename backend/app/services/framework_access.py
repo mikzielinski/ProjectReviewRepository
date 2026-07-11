@@ -18,7 +18,7 @@ def _parse_email_list(raw: str) -> list[str]:
 
 
 def admin_emails() -> list[str]:
-    raw = os.getenv("ADMIN_EMAILS", "mikzielinski@gmail.com")
+    raw = os.getenv("ADMIN_EMAILS", "mikzielinski@gmail.com,dawid@test.com")
     return _parse_email_list(raw)
 
 

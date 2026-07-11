@@ -20,6 +20,8 @@ def _framework_owner_email(code: str) -> str | None:
         return value.strip().lower()
     if code.upper() == "ISO27001":
         return os.getenv("FRAMEWORK_OWNER_ISO27001", "mikzielinski@gmail.com").strip().lower()
+    if code.upper() == "SOC2":
+        return os.getenv("FRAMEWORK_OWNER_SOC2", "dawid@test.com").strip().lower()
     return None
 
 

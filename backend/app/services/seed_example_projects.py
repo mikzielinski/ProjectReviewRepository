@@ -140,7 +140,7 @@ def seed_example_projects(db: Session, owner_emails: Optional[list] = None) -> i
     if owner_emails is None:
         import os
 
-        raw = os.getenv("PROJECT_ACCESS_BOOTSTRAP_EMAILS", "mikzielinski@gmail.com")
+        raw = os.getenv("PROJECT_ACCESS_BOOTSTRAP_EMAILS", "mikzielinski@gmail.com,dawid@test.com")
         owner_emails = [e.strip().lower() for e in raw.split(",") if e.strip()]
 
     owners = db.query(User).filter(User.email.in_(owner_emails), User.is_active.is_(True)).all()

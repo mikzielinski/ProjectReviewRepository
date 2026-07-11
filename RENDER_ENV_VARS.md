@@ -35,6 +35,18 @@ Add the following environment variables in the Render Dashboard (Environment tab
    - Value: Leave empty or provide your OpenAI API key if you want to use AI features
    - Description: OpenAI API key for AI-powered features
 
+8. **PROJECT_ACCESS_BOOTSTRAP_EMAILS**
+   - Value: `mikzielinski@gmail.com,dawid@test.com`
+   - Description: Comma-separated emails granted Business Owner on all projects at startup (idempotent bootstrap)
+
+9. **ADMIN_EMAILS**
+   - Value: `mikzielinski@gmail.com,dawid@test.com`
+   - Description: Org admin emails — can access Admin Framework standards tab and manage all frameworks
+
+10. **FRAMEWORK_OWNER_SOC2**
+    - Value: `dawid@test.com`
+    - Description: Default owner email for SOC 2 framework (used when seeding / backfilling ownership)
+
 ## Important Notes
 
 - **S3 Storage**: The current S3 configuration points to localhost (MinIO running locally). For Render deployment, you need to:

@@ -50,7 +50,7 @@ def bootstrap_memberships_from_env(db: Session) -> int:
     Ensure emails listed in PROJECT_ACCESS_BOOTSTRAP_EMAILS have Business Owner
     membership on every project. Safe to run on every startup (idempotent).
     """
-    raw = os.getenv("PROJECT_ACCESS_BOOTSTRAP_EMAILS", "mikzielinski@gmail.com")
+    raw = os.getenv("PROJECT_ACCESS_BOOTSTRAP_EMAILS", "mikzielinski@gmail.com,dawid@test.com")
     emails = [e.strip().lower() for e in raw.split(",") if e.strip()]
     if not emails:
         return 0
