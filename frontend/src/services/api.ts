@@ -74,9 +74,9 @@ api.interceptors.response.use(
     }
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
-      // Don't redirect if we're already on login page
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login'
+      const loginPath = `${import.meta.env.BASE_URL}login`.replace(/\/{2,}/g, '/')
+      if (window.location.pathname !== loginPath) {
+        window.location.href = loginPath
       }
     }
     return Promise.reject(error)

@@ -6,10 +6,12 @@ import ProjectDetail from './pages/ProjectDetail'
 import Templates from './pages/Templates'
 import ProtectedRoute from './components/ProtectedRoute'
 
+const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '') || undefined
+
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <BrowserRouter basename={routerBasename}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route
