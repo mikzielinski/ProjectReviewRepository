@@ -1,7 +1,29 @@
 import { useEffect, useState } from 'react'
+import axios from 'axios'
 import Layout from '../components/Layout'
 import api from '../services/api'
 import './Admin.css'
+
+function formatAdminError(err: unknown, context: string): string {
+  if (axios.isAxiosError(err)) {
+    const status = err.response?.status
+    const detail = err.response?.data?.detail
+    if (status === 404) {
+      return 'Endpoint administracyjny nie istnieje (404). Backend wymaga wdrożenia najnowszej wersji z routerem admin.'
+    }
+    if (!err.response) {
+      if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+        return 'Przekroczono czas oczekiwania — backend na Renderze może się budzić. Spróbuj ponownie za ~30 s.'
+      }
+      return `Błąd sieci — nie można połączyć z API (${context}).`
+    }
+    if (typeof detail === 'string') return detail
+    if (status === 401) return 'Sesja wygasła — zaloguj się ponownie.'
+    if (status === 403) return 'Brak uprawnień do panelu administracyjnego.'
+    return `Błąd API (${status ?? '?'}): ${context}.`
+  }
+  return `Nie udało się załadować: ${context}.`
+}
 
 interface ProjectType {
   id: string
@@ -54,17 +76,22 @@ export default function Admin() {
       ])
       setProjectTypes(typesRes.data || [])
       setFrameworks(fwRes.data || [])
-    } catch {
-      setError('Nie udało się załadować danych administracyjnych.')
+    } catch (err) {
+      setError(formatAdminError(err, 'dane administracyjne'))
     } finally {
       setLoading(false)
     }
   }
 
   const loadControls = async (code?: string) => {
-    const params = code ? { framework_code: code } : {}
-    const res = await api.get('/admin/controls', { params })
-    setControls(res.data || [])
+    try {
+      const params = code ? { framework_code: code } : {}
+      const res = await api.get('/admin/controls', { params })
+      setControls(res.data || [])
+      setError(null)
+    } catch (err) {
+      setError(formatAdminError(err, 'biblioteka kontrolek'))
+    }
   }
 
   useEffect(() => { load() }, [])

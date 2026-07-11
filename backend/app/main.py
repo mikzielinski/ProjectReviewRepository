@@ -366,7 +366,15 @@ async def startup_event():
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    route_paths = {getattr(r, "path", "") for r in app.routes}
+    return {
+        "status": "ok",
+        "features": {
+            "admin": "/api/v1/admin/project-types" in route_paths,
+            "auditor": "/api/v1/auditor" in route_paths or any("/auditor" in p for p in route_paths),
+            "project_controls": any("/project-controls" in p for p in route_paths),
+        },
+    }
 
 
 @app.get("/")
